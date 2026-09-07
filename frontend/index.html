@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dream — Empowering Communities</title>
+    <!-- Tailwind CDN (no build) -->
+    <script>
+      // configure primary color to match DIT logo orange
+      tailwindConfig = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#D3542B', // DIT logo orange
+              'primary-dark': '#A63E1A' // darker shade for hover
+            }
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <meta name="description" content="Empowering Communities, Building Brighter Futures" />
+    <style>
+      :root { --dream-orange: #d3542b; --dream-green: #2f855a; --dream-ink: #24302b; }
+      body { margin: 0; color: var(--dream-ink); background: #f7f8f6; font-family: Arial, sans-serif; }
+      .site-header { position: fixed; inset: 0 0 auto; z-index: 50; background: rgba(255,255,255,.96); box-shadow: 0 1px 12px rgba(20, 28, 25, .08); }
+      .site-header nav { max-width: 1280px; height: 64px; margin: 0 auto; padding: 0 24px; }
+      .site-header nav > div { display: flex; align-items: center; justify-content: space-between; height: 100%; }
+      .site-header nav > div > div:first-child { display: flex; align-items: center; }
+      .site-header nav a { color: #3f4944; text-decoration: none; }
+      .site-header nav > div > div:first-child > a { display: flex; align-items: center; }
+      .site-header nav img { width: 112px; height: 42px; object-fit: contain; }
+      .site-header nav ul { display: flex; align-items: center; gap: 22px; margin: 0; padding: 0; list-style: none; }
+      .site-header nav ul a { font-size: 13px; font-weight: 700; }
+      .site-header nav ul a:hover { color: var(--dream-orange); }
+      .site-header nav > div > div:last-child { display: flex; align-items: center; gap: 12px; }
+      .site-header nav > div > div:last-child a:first-child { padding: 10px 17px; border-radius: 999px; background: var(--dream-orange); color: white; font-size: 13px; font-weight: 800; }
+      .site-header nav > div > div:last-child a:first-child:hover { background: #a63e1a; }
+      #menu-toggle { border: 0; background: transparent; cursor: pointer; }
+      #menu-toggle { border: 0; background: transparent; cursor: pointer; }
+      #menu-overlay { display: none; position: fixed; inset: 0; z-index: 60; background: rgba(20, 28, 25, .52); backdrop-filter: blur(4px); }
+      #menu-overlay.is-open { display: block; }
+      #site-menu { position: fixed; inset: 0 auto 0 0; z-index: 70; display: flex; width: min(88vw, 380px); flex-direction: column; background: #fff; box-shadow: 16px 0 45px rgba(20, 28, 25, .18); transform: translateX(-105%); transition: transform .28s cubic-bezier(.22, 1, .36, 1); }
+      #site-menu.is-open { transform: translateX(0); }
+      #site-menu .menu-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 24px; border-bottom: 1px solid #edf0ee; }
+      #site-menu .menu-scroll { flex: 1; overflow-y: auto; padding: 22px 16px; }
+      #site-menu .menu-footer { padding: 18px 24px; border-top: 1px solid #edf0ee; }
+      #site-menu .menu-label { margin: 0 12px 10px; color: #8a958f; font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+      #site-menu .menu-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+      #site-menu .menu-link { display: flex; align-items: center; gap: 13px; min-height: 48px; padding: 10px 12px; border-radius: 12px; color: var(--dream-ink); font-size: 14px; font-weight: 700; text-decoration: none; transition: background .18s, color .18s, transform .18s; }
+      #site-menu .menu-link:hover { background: #fff4ef; color: var(--dream-orange); transform: translateX(2px); }
+      #site-menu .menu-link.is-current { background: #fff1eb; color: var(--dream-orange); }
+      #site-menu .menu-link svg { width: 19px; height: 19px; flex: 0 0 19px; stroke: currentColor; }
+      #site-menu button.menu-link { width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer; font-family: inherit; }
+      #site-menu .menu-divider { height: 1px; margin: 22px 8px; background: #edf0ee; }
+      #site-menu .menu-donate { display: flex; align-items: center; justify-content: space-between; min-height: 50px; padding: 12px 14px; border-radius: 12px; background: var(--dream-orange); color: #fff; box-shadow: 0 8px 18px rgba(211, 84, 43, .2); }
+      #site-menu .menu-donate:hover { background: #a63e1a; color: #fff; transform: translateY(-1px); }
+      #site-menu .menu-socials { display: flex; gap: 18px; }
+      #site-menu .menu-socials a { color: #65716b; font-size: 12px; font-weight: 700; text-decoration: none; }
+      #site-menu .menu-socials a:hover { color: var(--dream-orange); }
+      body.dream-reduced-motion *, body.dream-reduced-motion *::before, body.dream-reduced-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      body.dream-high-contrast { background: #fff; color: #111; }
+      body.dream-high-contrast #site-menu { border-right: 2px solid #111; }
+      body.dream-high-contrast .menu-link { color: #111; }
+      @media (max-width: 767px) { #site-menu { width: min(90vw, 350px); } }
+    </style>
+  </head>
+  <body class="antialiased text-gray-800 bg-gray-50">
+    <!-- NAV -->
+    <header class="site-header fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
+      <nav class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <button id="menu-toggle" type="button" aria-label="Open website menu" aria-expanded="false" aria-controls="site-menu" class="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 transition hover:bg-orange-50 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+            <a href="index.html" class="flex items-center mr-8">
+              <!--  assets/logo -->
+              <img src="assets/DIT LOGO1.png" alt="logo" class="h-8 w-auto mr-3 object-contain" />
+             
+            </a>
+            <!-- Desktop Links -->
+            <ul class="hidden md:flex space-x-6 items-center text-gray-700">
+            <li><a href="index.html" class="hover:text-primary">Home</a></li>
+            <li><a href="about.html" class="hover:text-primary">About Us</a></li>
+            <li><a href="programs.html" class="hover:text-primary">Programs</a></li>
+            <li><a href="gallery.html" class="hover:text-primary">Gallery</a></li>
+            </ul>
+          </div>
+
+          <div class="flex items-center">
+            <!-- Desktop auth buttons -->
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <div id="menu-overlay" aria-hidden="true"></div>
+    <aside id="site-menu" aria-label="Main menu" aria-hidden="true">
+      <div class="menu-head">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-primary">Dream Initiative</p>
+          <p class="mt-1 text-sm text-gray-500">Hope in action</p>
+        </div>
+        <button id="menu-close" type="button" aria-label="Close website menu" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+      <div class="menu-scroll">
+        <p class="menu-label">Explore</p>
+        <nav class="menu-list">
+          <a href="index.html" class="menu-link is-current"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10.8 12 3l9 7.8M5.5 9.5V21h13V9.5M9.5 21v-6h5v6"/></svg>Home</a>
+          <a href="about.html" class="menu-link"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path stroke-linecap="round" d="M5.5 20c.8-3.3 3-5 6.5-5s5.7 1.7 6.5 5"/></svg>About Dream</a>
+          <a href="programs.html" class="menu-link"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5V5.8a1.8 1.8 0 0 1 1.8-1.8H19v15H5.8A1.8 1.8 0 0 0 4 20.8M4 19.5A1.8 1.8 0 0 1 5.8 18H19"/></svg>Our programs</a>
+          <a href="gallery.html" class="menu-link"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.4"/><path stroke-linecap="round" stroke-linejoin="round" d="m4 17 4.5-4 3.5 3 2.5-2 5.5 5"/></svg>Gallery</a>
+        </nav>
+
+        <div class="menu-divider"></div>
+        <p class="menu-label">Take part</p>
+        <nav class="menu-list">
+          <a href="volunteer.html" class="menu-link"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 20V5M7 10l5-5 5 5"/><path stroke-linecap="round" stroke-linejoin="round" d="M5 20h14"/></svg>Volunteer with us</a>
+          <a href="contact.html" class="menu-link"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5v-8Z"/></svg>Message the team</a>
+          <a href="https://www.facebook.com/share/1SY9Y1PeE8/" target="_blank" rel="noopener noreferrer" class="menu-link"><svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.6 1.7-1.6h1.6V3.8c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2V10H7.5v3h2.8v8h3.2Z"/></svg>Follow us on Facebook</a>
+        </nav>
+
+        <div class="menu-divider"></div>
+        <p class="menu-label">Preferences</p>
+        <nav class="menu-list">
+          <button type="button" class="menu-link" id="menu-language"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M3 12h18M12 3c2.2 2.4 3.2 5.4 3.2 9s-1 6.6-3.2 9c-2.2-2.4-3.2-5.2-3.2-9S9.8 5.4 12 3Z"/></svg><span>Language: <strong id="menu-language-value">English</strong></span></button>
+          <button type="button" class="menu-link" id="menu-contrast"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 3a9 9 0 0 1 0 18V3Z"/></svg><span>Display: <strong id="menu-contrast-value">Light</strong></span></button>
+          <button type="button" class="menu-link" id="menu-motion"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h3m10 0h3M7.8 7.8 10 10m6.2-2.2L14 10m-6.2 8.2L10 14m6.2 4.2L14 14"/><circle cx="12" cy="12" r="2.5"/></svg><span>Motion: <strong id="menu-motion-value">Standard</strong></span></button>
+          <a href="login.html" class="menu-link"><svg fill="none" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>Log in</a>
+        </nav>
+      </div>
+      <div class="menu-footer">
+        <div class="menu-socials">
+          <a href="https://www.instagram.com/dreamtanzania?stkn=ZW5mNTljY3hzcTV3" target="_blank" rel="noopener noreferrer" class="hover:text-primary">Instagram ↗</a>
+          <a href="https://www.facebook.com/share/1SY9Y1PeE8/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600">Facebook ↗</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="pt-20">
+      <!-- HOME / HERO -->
+      <section id="home" class="max-w-7xl mx-auto px-0 lg:px-0 py-0 relative">
+        <div class="relative w-full h-[350px] md:h-[400px] lg:h-[500px] overflow-hidden">
+          <!-- Marquee image slider -->
+          <div id="hero-marquee" class="absolute inset-0 flex items-center h-full">
+            <div id="marquee-track" class="flex items-center h-full"></div>
+          </div>
+          <!-- Overlay text and button -->
+          <div class="absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 lg:px-24 z-10">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-lg mb-4">
+              Empowering Communities,<br />Building Brighter Futures
+            </h1>
+            <p class="text-white text-lg md:text-xl max-w-xl mb-6 drop-shadow">We partner with local leaders and volunteers to create sustainable programs that uplift families, improve access to education, and promote livelihoods.</p>
+            <a href="login.html" class="flex items-center justify-center px-8 py-3 bg-green-500 rounded-full font-extrabold text-xl shadow-lg border-2 border-green-600 hover:bg-green-600 text-white transition-all duration-200 relative">
+              <svg class="w-6 h-6 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.88 6.196M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span style="text-shadow: 0 2px 8px #c01e1e, 0 1px 0 #791010;" class="text-white">Login / Sign Up</span>
+            </a>
+          </div>
+          <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+        </div>
+        <style>
+          /* Remove old marquee animation, handled by JS */
+          #hero-marquee {
+            overflow: hidden;
+            width: 100%;
+          }
+          #marquee-track {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            will-change: transform;
+          }
+        </style>
+      </section>
+      <!-- ABOUT US SECTION -->
+      <section id="about-link" class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+        <div class="bg-white rounded-xl shadow-md p-8 flex flex-col md:flex-row items-center gap-8">
+          <img src="assets/DIT LOGO1.png" alt="About Dream Initiative" class="w-24 h-24 object-contain mb-6 md:mb-0" />
+          <div class="flex-1">
+            <h2 class="text-2xl font-bold text-primary mb-2">About Us</h2>
+            <p class="text-gray-700 mb-4">Learn more about our mission, vision, and team.</p>
+            <a href="about.html" class="inline-block px-6 py-2 bg-green-500 text-white rounded-full font-semibold shadow hover:bg-green-600 transition">Read More</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROGRAMS SECTION -->
+      <section id="programs-link" class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+        <div class="bg-white rounded-xl shadow-md p-8">
+          <h2 class="text-2xl font-bold text-primary mb-6 text-center">Programs & Projects</h2>
+          <div id="homepage-programs" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6"></div>
+          <!-- View All Programs button removed -->
+        </div>
+      </section>
+
+      <!-- GALLERY SECTION -->
+      <section id="gallery-link" class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+        <div class="bg-white rounded-xl shadow-md p-8">
+          <h2 class="text-2xl font-bold text-primary mb-2">Gallery</h2>
+          <p class="text-gray-700 mb-4">See highlights from our events, programs, and community outreach in our photo gallery.</p>
+          <div id="homepage-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+          <!-- View Gallery button removed -->
+        </div>
+      </section>
+
+      <!-- AUTH (Login/Register) 
+      <section id="auth" class="max-w-5xl mx-auto px-6 lg:px-8 py-12">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div class="md:grid md:grid-cols-2">
+            <-- Login 
+            <div class="p-8">
+              <h2 class="text-2xl font-bold mb-4">Login</h2>
+              <form class="space-y-4" id="login-form">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Email or Username</label>
+                  <input required type="text" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2" placeholder="you@example.com" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Password</label>
+                  <input required type="password" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2" placeholder="••••••••" />
+                  <div class="text-sm text-gray-500 mt-2"><a href="#" class="hover:text-primary">Forgot Password?</a></div>
+                </div>
+                <div>
+                  <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded-md font-medium">Login</button>
+                </div>
+              </form>
+            </div>
+
+            <-- Register 
+            <div class="p-8 bg-gray-50">
+              <h2 class="text-2xl font-bold mb-4">Register</h2>
+              <form class="space-y-4" id="register-form">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                  <input required type="text" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2" placeholder="Jane Doe" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Email</label>
+                  <input required type="email" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2" placeholder="you@example.com" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Password</label>
+                  <input required type="password" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2" placeholder="Create a password" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                  <input required type="password" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm p-2" placeholder="Confirm password" />
+                </div>
+                <div>
+                  <button type="submit" class="w-full px-4 py-2 bg-primary text-white rounded-md font-medium">Sign Up</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>   -->
+
+        <!-- Mobile toggle tabs (visible only on small screens) -->
+        <div class="mt-6 md:hidden max-w-md mx-auto">
+          <div class="bg-white rounded-md shadow-sm p-4">
+            <div class="flex justify-center space-x-2 mb-4">
+              <button id="tab-login" class="px-4 py-2 rounded-md bg-primary text-white">Login</button>
+              <button id="tab-register" class="px-4 py-2 rounded-md bg-gray-100 text-gray-700">Register</button>
+            </div>
+            <div id="mobile-forms">
+              <!-- JS will clone or show appropriate form for mobile when toggled -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-12 border-t bg-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between">
+        <div class="flex space-x-8 text-sm text-gray-600">
+          <a href="#quick" class="hover:text-primary">Quick Links</a>
+          <a href="#legal" class="hover:text-primary">Legal</a>
+          <span class="font-semibold text-gray-700">Contact Us:</span>
+          <a href="https://wa.me/255749908992" target="_blank" rel="noopener noreferrer" class="font-semibold text-green-700 hover:text-green-900 hover:underline">WhatsApp +255 749 908 992</a>
+          <a href="tel:+255719208955" class="font-semibold text-primary hover:text-primary-dark hover:underline">Call +255 719 208 955</a>
+        </div>
+
+        <div class="mt-4 text-xs text-gray-500 md:mt-0">© 2026 Dream Initiative · Powered by CreativeDavy</div>
+        <div class="flex items-center mt-4 md:mt-0 space-x-3">
+          <!-- Social icons (black & white) -->
+          <a href="https://www.facebook.com/share/1SY9Y1PeE8/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:opacity-80" aria-label="Facebook">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.2v-2.9h2.2V9.1c0-2.2 1.3-3.4 3.2-3.4.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.4h2.3l-.4 2.9h-1.9v7A10 10 0 0022 12z"/></svg>
+          </a>
+          <a href="#" class="text-black hover:opacity-80" aria-label="Twitter">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0016.5 3c-2.6 0-4.7 2.34-4.1 4.86A12.94 12.94 0 013 4s-4 9 5 13a13 13 0 01-8 2c9 5.5 20 0 20-11.5v-.5A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+          <a href="#" class="text-black hover:opacity-80" aria-label="LinkedIn">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.98 3.5A2.5 2.5 0 102.5 6a2.5 2.5 0 002.48-2.5zM3 8h4v12H3zM9 8h3.8v1.7h.1c.5-.9 1.8-1.8 3.6-1.8 3.9 0 4.6 2.6 4.6 6V20h-4v-5.5c0-1.3 0-3-1.8-3-1.8 0-2.1 1.4-2.1 2.9V20H9z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/dreamtanzania?stkn=ZW5mNTljY3hzcTV3" target="_blank" rel="noopener noreferrer" class="text-black hover:opacity-80" aria-label="Instagram">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5" fill="currentColor"/></svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="src/app.js"></script>
+    <script src="src/homepageData.js"></script>
+        <script>
+          const { homepagePrograms, homepageGallery } = window;
+          // Render Programs
+          const programsContainer = document.getElementById('homepage-programs');
+          if (programsContainer && homepagePrograms) {
+            programsContainer.innerHTML = homepagePrograms.map(p => `
+              <div class="bg-gray-100 rounded-lg shadow p-4 flex flex-col items-center">
+                <img src="${p.image}" alt="${p.title}" class="w-full h-40 object-cover rounded mb-3" />
+                <h3 class="font-bold text-lg mb-2 text-primary">${p.title}</h3>
+                <p class="text-gray-700 text-sm mb-2 text-center">${p.description}</p>
+              </div>
+            `).join('');
+          }
+          // Render Gallery
+          const galleryContainer = document.getElementById('homepage-gallery');
+          let showAllGallery = false;
+          function renderGallery() {
+            if (!galleryContainer || !homepageGallery) return;
+            const imagesToShow = showAllGallery ? homepageGallery : homepageGallery.slice(0, 4);
+            galleryContainer.innerHTML = imagesToShow.map((g, i) => `
+              <div class="bg-gray-100 rounded-lg shadow p-2 flex flex-col items-center cursor-pointer gallery-thumb" data-index="${i}">
+                <div class="w-32 h-32 md:w-40 md:h-40 flex items-center justify-center overflow-hidden mb-2">
+                  <img src="${g.image}" alt="Gallery" class="object-cover w-full h-full" />
+                </div>
+                <span class="text-xs text-gray-600 text-center">${g.caption || ''}</span>
+              </div>
+            `).join('');
+            // Show More button
+            const showMoreBtn = document.getElementById('show-more-gallery');
+            const showLessBtn = document.getElementById('show-less-gallery');
+            if (showMoreBtn) showMoreBtn.remove();
+            if (showLessBtn) showLessBtn.remove();
+            // Button style matches login button: bg-green-500 rounded-full font-extrabold text-xl shadow-lg border-2 border-green-600 hover:bg-green-600 text-white transition-all duration-200
+            if (!showAllGallery && homepageGallery.length > 4) {
+              const btn = document.createElement('button');
+              btn.id = 'show-more-gallery';
+              btn.textContent = 'Show More';
+              btn.className = 'block mx-auto mt-2 px-8 py-3 bg-green-500 rounded-full font-extrabold text-lg shadow-lg border-2 border-green-600 hover:bg-green-600 text-white transition-all duration-200';
+              btn.onclick = () => { showAllGallery = true; renderGallery(); };
+              galleryContainer.parentNode.appendChild(btn);
+            } else if (showAllGallery && homepageGallery.length > 4) {
+              const btn = document.createElement('button');
+              btn.id = 'show-less-gallery';
+              btn.textContent = 'Show Less';
+              btn.className = 'block mx-auto mt-2 px-8 py-3 bg-green-500 rounded-full font-extrabold text-lg shadow-lg border-2 border-green-600 hover:bg-green-600 text-white transition-all duration-200';
+              btn.onclick = () => { showAllGallery = false; renderGallery(); };
+              galleryContainer.parentNode.appendChild(btn);
+            }
+            // Add click event for modal
+            document.querySelectorAll('.gallery-thumb').forEach(el => {
+              el.onclick = (e) => {
+                const idx = parseInt(el.getAttribute('data-index'));
+                openGalleryModal(showAllGallery ? idx : idx);
+              };
+            });
+          }
+          // Modal logic
+          let modalEl = document.getElementById('gallery-modal');
+          if (!modalEl) {
+            modalEl = document.createElement('div');
+            modalEl.id = 'gallery-modal';
+            modalEl.style.display = 'none';
+            modalEl.innerHTML = `
+              <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+                <div class="relative bg-white rounded-lg shadow-lg p-4 max-w-2xl w-full flex flex-col items-center">
+                  <button id="close-gallery-modal" class="absolute top-2 right-2 text-gray-700 hover:text-primary text-2xl">&times;</button>
+                  <img id="gallery-modal-img" src="" alt="Expanded" class="max-h-[70vh] w-auto rounded mb-2" />
+                  <div id="gallery-modal-caption" class="text-center text-gray-700 text-sm"></div>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(modalEl);
+          }
+          function openGalleryModal(idx) {
+            const img = homepageGallery[idx];
+            if (!img) return;
+            document.getElementById('gallery-modal-img').src = img.image;
+            document.getElementById('gallery-modal-caption').textContent = img.caption || '';
+            modalEl.style.display = 'block';
+          }
+          document.addEventListener('click', function(e) {
+            if (e.target && (e.target.id === 'close-gallery-modal' || e.target.id === 'gallery-modal')) {
+              modalEl.style.display = 'none';
+            }
+          });
+          renderGallery();
+        </script>
+    <script src="src/engagement.js?v=20260902"></script>
+    <script>
+      // Infinite marquee logic for hero images
+      const heroImages = [
+        { src: 'assets/_52B9087.jpg', alt: 'Hero 1' },
+        { src: 'assets/_52B9099.jpg', alt: 'Hero 2' },
+        { src: 'assets/IMG_0076.JPG', alt: 'Hero 3' },
+        { src: 'assets/_52B9179.jpg', alt: 'Hero 4' },
+        { src: 'assets/IMG_0082.JPG', alt: 'Hero 5' },
+        { src: 'assets/IMG_0083.JPG', alt: 'Hero 6' },
+        { src: 'assets/_52B9122.jpg', alt: 'Hero 7' },
+        { src: 'assets/IMG_0076 (1).JPG', alt: 'Hero 8' },
+        { src: 'assets/_52B9163.jpg', alt: 'Hero 9' }
+      ];
+      const marqueeTrack = document.getElementById('marquee-track');
+      function renderMarqueeImages() {
+        marqueeTrack.innerHTML = '';
+        // Duplicate images for seamless loop
+        [...heroImages, ...heroImages].forEach(img => {
+          const el = document.createElement('img');
+          el.src = img.src;
+          el.alt = img.alt;
+          el.className = 'h-full w-auto object-cover mx-2 rounded-xl shadow-lg';
+          marqueeTrack.appendChild(el);
+        });
+      }
+      renderMarqueeImages();
+      // Animation
+      let pos = 0;
+      let reqId;
+      function animateMarquee() {
+        pos -= 1; // px per frame
+        // Reset when scrolled half (since we duplicated)
+        const totalWidth = marqueeTrack.scrollWidth / 2;
+        if (Math.abs(pos) >= totalWidth) pos = 0;
+        marqueeTrack.style.transform = `translateX(${pos}px)`;
+        reqId = requestAnimationFrame(animateMarquee);
+      }
+      animateMarquee();
+      // Pause on hover
+      marqueeTrack.addEventListener('mouseenter', () => cancelAnimationFrame(reqId));
+      marqueeTrack.addEventListener('mouseleave', animateMarquee);
+    </script>
+  </body>
+</html>

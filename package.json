@@ -1,0 +1,21 @@
+{
+  "name": "dream-website",
+  "version": "1.0.0",
+  "description": "This small static UI demonstrates a responsive website layout built with Tailwind CSS (CDN) implementing the requested components: fixed top navigation, Home hero, Member Login/Register screens (desktop two-column, mobile tabs), and Footer.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express-session": "^1.18.2",
+    "multer": "^2.0.2",
+    "yarn": "^1.22.22"
+  }
+}

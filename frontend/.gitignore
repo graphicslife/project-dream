@@ -1,0 +1,25 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Uploaded/generated files
+assets/profile_images/*
+!assets/profile_images/.gitkeep
+uploads/
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+
+# Runtime files
+*.log
+*.tmp
+*.temp
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/

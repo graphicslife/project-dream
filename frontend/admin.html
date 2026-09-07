@@ -1,0 +1,822 @@
+
+<!DOCTYPE html>
+<style>
+  body {
+    min-height: 100vh;
+    background: url('assets/_52B9087.jpg') center center/cover no-repeat fixed;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(120deg, rgba(90,103,216,0.7) 0%, rgba(255,229,180,0.5) 50%, rgba(34,197,94,0.4) 100%);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .main-admin-content {
+    position: relative;
+    z-index: 1;
+  }
+</style>
+<script src="src/api.js?v=20260902"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const API = window.DREAM_API;
+  const user = JSON.parse(localStorage.getItem('dream_user') || '{}');
+  function apiFetch(url, opts = {}) {
+    opts.headers = opts.headers || {};
+    opts.headers['Content-Type'] = 'application/json';
+    opts.credentials = 'include'; // Ensure cookies/session sent
+    return fetch(API + url, opts).then(r => r.json());
+  }
+
+  // --- Logout Functionality ---
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async function () {
+      try {
+        await apiFetch('/api/logout', { method: 'POST' });
+      } catch (e) {}
+      localStorage.removeItem('dream_user');
+      window.location.href = 'login.html';
+    });
+  }
+
+  // --- Programs Management ---
+  async function loadPrograms() {
+    const container = document.getElementById('program-list');
+    if (!container) {
+      console.warn('program-list not found on this page');
+      return;
+    }
+    container.innerHTML = '<div class="text-gray-400">Loading...</div>';
+    try {
+      const programs = await apiFetch('/api/programs'); // Fetch programs
+      if (programs && programs.error && programs.error.toLowerCase().includes('admin access')) {
+        container.innerHTML = `<div class='text-red-500'>Access denied: You do not have admin privileges.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      if (!programs.length) {
+        container.innerHTML = '<div class="text-gray-400">No programs found.</div>';
+        return;
+      }
+      (programs || []).forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between border-b pb-2';
+        div.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <img src="${p.image_url || 'assets/IMG_0076.jpg'}" alt="Program Image" class="w-12 h-12 rounded object-cover border" />
+            <span class="font-medium">${p.title}</span>
+            <span class="ml-2 text-xs text-gray-500">${p.status}</span>
+          </div>
+          <div class="space-x-2">
+            <button class="px-2 py-1 bg-primary text-white rounded-md text-xs hover:bg-primary-dark" data-edit-program="${p.id}">Edit</button>
+            <button class="px-2 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600" data-delete-program="${p.id}">Delete</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+      // Edit button
+      container.querySelectorAll('button[data-edit-program]').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const id = btn.getAttribute('data-edit-program');
+          showEditProgramModal(id);
+        });
+      });
+      // Delete button
+      container.querySelectorAll('button[data-delete-program]').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          const id = btn.getAttribute('data-delete-program');
+          await apiFetch(`/api/programs/${id}`, {method:'DELETE'});
+          loadPrograms();
+        });
+      });
+    } catch (err) {
+      container.innerHTML = `<div class="text-red-500">Failed to load programs.</div>`;
+    }
+  }
+
+  // Add Program
+  // Find the add program form by its modal and class
+  const addProgramModal = document.getElementById('add-program-modal');
+    // Use explicit ID for the add program form
+    const addProgramForm = document.getElementById('addProgramForm');
+    if (addProgramForm) {
+      addProgramForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(addProgramForm);
+        const fileInput = addProgramForm.querySelector('input[type="file"][name="image"]');
+        if (!fileInput || !fileInput.files[0]) {
+          alert('Please select an image file.');
+          return;
+        }
+        formData.append('image', fileInput.files[0]);
+        try {
+          const res = await fetch(`${API}/api/programs`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+          });
+          if (!res.ok) throw new Error('Failed to add program');
+          addProgramForm.reset();
+          document.getElementById('add-program-modal').classList.add('hidden');
+          loadPrograms();
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+      });
+    } else {
+      console.warn('addProgramForm not found in DOM');
+    }
+
+  // Edit Program Modal logic
+  function showEditProgramModal(id) {
+    apiFetch(`/api/programs/${id}`).then(p => {
+      const modal = document.getElementById('edit-program-modal');
+      if (!modal) {
+        console.warn('edit-program-modal not found on this page');
+        return;
+      }
+      modal.style.display = 'block';
+      modal.querySelector('input[type="text"]').value = p.title;
+      modal.querySelector('select').value = p.status;
+      // Image upload is now handled
+      modal.querySelector('img').src = p.image_url || 'assets/program1.jpg';
+      modal.dataset.programId = id;
+    });
+  }
+  const editProgramForm = document.querySelector('#edit-program-modal form');
+  if (editProgramForm) {
+    editProgramForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.dataset.id;
+      const formData = new FormData(form);
+      const fileInput = form.querySelector('input[type="file"][name="image"]');
+      if (fileInput && fileInput.files[0]) {
+        formData.append('image', fileInput.files[0]);
+      } else {
+        formData.delete('image');
+      }
+      try {
+        const res = await fetch(`${API}/api/programs/${id}`, {
+          method: 'PUT',
+          body: formData,
+          credentials: 'include'
+        });
+        if (!res.ok) throw new Error('Failed to update program');
+        form.reset();
+        document.getElementById('edit-program-modal').classList.add('hidden');
+        loadPrograms();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+  } else {
+    console.warn('edit-program-modal form not found on this page');
+  }
+
+  // --- Gallery Management ---
+  async function loadGallery() {
+    const container = document.getElementById('gallery-list');
+    if (!container) {
+      console.warn('gallery-list not found on this page');
+      return;
+    }
+    container.innerHTML = '<div class="text-gray-400">Loading...</div>';
+    try {
+      const images = await apiFetch('/api/gallery');
+      if (images && images.error && images.error.toLowerCase().includes('admin access')) {
+        container.innerHTML = `<div class='text-red-500'>Access denied: You do not have admin privileges.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      if (!images.length) {
+        container.innerHTML = '<div class="text-gray-400">No images found.</div>';
+        return;
+      }
+      (images || []).forEach(img => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between border-b pb-2';
+        div.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <img src="${img.image_url || 'assets/IMG_0083.jpg'}" alt="Gallery" class="w-10 h-10 rounded object-cover border" />
+            <span class="font-medium">${img.caption || ''}</span>
+          </div>
+          <div class="space-x-2">
+          <button class="px-2 py-1 bg-primary text-white rounded-md text-xs hover:bg-primary-dark" data-edit-image="${img.id}">Edit</button>
+          <button class="px-2 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600" data-delete-image="${img.id}">Delete</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+    // Edit button
+    container.querySelectorAll('button[data-edit-image]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = btn.getAttribute('data-edit-image');
+        showEditImageModal(id);
+      });
+    });
+  // Delete button
+  container.querySelectorAll('button[data-delete-image]').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const id = btn.getAttribute('data-delete-image');
+      await apiFetch(`/api/gallery/${id}`, {method:'DELETE'});
+      loadGallery();
+    });
+  });
+  } catch (err) {
+    container.innerHTML = `<div class="text-red-500">Failed to load gallery.</div>`;
+  }
+}
+
+// Add Image
+const addImageForm = document.querySelector('#add-image-modal form');
+  addImageForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(addImageForm);
+    const fileInput = addImageForm.querySelector('input[type="file"][name="image"]');
+    if (!fileInput || !fileInput.files[0]) {
+      alert('Please select an image file.');
+      return;
+    }
+    formData.append('image', fileInput.files[0]);
+    try {
+      const res = await fetch(`${API}/api/gallery`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to add image');
+      addImageForm.reset();
+      document.getElementById('add-image-modal').classList.add('hidden');
+      loadGallery();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  });
+
+// Edit Image Modal logic
+function showEditImageModal(id) {
+  apiFetch(`/api/gallery/${id}`).then(img => {
+    const modal = document.getElementById('edit-image-modal');
+    modal.style.display = 'block';
+    modal.querySelector('input[type="text"]').value = img.caption || '';
+    modal.querySelector('img').src = img.image_url || 'assets/sample.jpg';
+    modal.dataset.imageId = id;
+  });
+  document.querySelector('#edit-image-modal form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const id = form.dataset.id;
+    const formData = new FormData(form);
+    const fileInput = form.querySelector('input[type="file"][name="image"]');
+    if (fileInput && fileInput.files[0]) {
+      formData.append('image', fileInput.files[0]);
+    } else {
+      formData.delete('image');
+    }
+    try {
+      const res = await fetch(`${API}/api/gallery/${id}`, {
+        method: 'PUT',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to update image');
+      form.reset();
+      document.getElementById('edit-image-modal').classList.add('hidden');
+      loadGallery();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  });
+}
+document.querySelector('#edit-image-modal form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const modal = document.getElementById('edit-image-modal');
+  const id = modal.dataset.imageId;
+  const caption = this.querySelector('input[type="text"]').value;
+  await apiFetch(`/api/gallery/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ caption })
+  });
+  modal.style.display = 'none';
+  loadGallery();
+});
+
+// --- Top-Level Pending Members ---
+async function loadPendingMembers() {
+  const container = document.getElementById('pending-members');
+  container.innerHTML = '<div class="text-gray-400">Loading...</div>';
+  try {
+    const all = await apiFetch('/api/admin/users');
+    if (all && all.error && all.error.toLowerCase().includes('admin access')) {
+      container.innerHTML = `<div class='text-red-500'>Access denied: You do not have admin privileges.</div>`;
+      return;
+    }
+    container.innerHTML = '';
+    const pending = (all || []).filter(u => u.status !== 'approved');
+    if (!pending.length) {
+      container.innerHTML = '<div class="text-gray-400">No pending members.</div>';
+      return;
+    }
+    pending.forEach(u => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between border-b pb-2';
+      div.innerHTML = `
+        <div>
+          <span class="font-medium">${u.username}</span>
+          <span class="ml-2 text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">${u.role || 'Pending'}</span>
+          <span class="ml-2 text-xs text-gray-500">${u.email}</span>
+        </div>
+        <div class="space-x-2">
+          <select class="px-2 py-1 rounded text-xs border" data-role-select="${u.id}">
+            <option value="member">Member</option>
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+          <button class="px-3 py-1 bg-primary text-white rounded-md text-xs font-medium hover:bg-primary-dark" data-approve="${u.id}">Approve</button>
+          <button class="px-3 py-1 bg-green-500 text-white rounded-md text-xs font-medium hover:bg-green-600" data-reject="${u.id}">Reject</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+    container.querySelectorAll('button[data-approve]').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const id = btn.getAttribute('data-approve');
+        const roleSelect = container.querySelector(`select[data-role-select="${id}"]`);
+        const selectedRole = roleSelect ? roleSelect.value : 'member';
+        await apiFetch(`/api/admin/users/${id}/approve`, {method:'PUT', body:JSON.stringify({role:selectedRole, status:'approved'})});
+        loadPendingMembers();
+        loadMembers();
+      });
+    });
+    container.querySelectorAll('button[data-reject]').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const id = btn.getAttribute('data-reject');
+        await apiFetch(`/api/admin/users/${id}`, {method:'DELETE'});
+        loadPendingMembers();
+        loadMembers();
+      });
+    });
+  } catch (err) {
+    container.innerHTML = `<div class="text-red-500">Failed to load pending members.</div>`;
+  }
+}
+
+// --- Approved Members Table ---
+async function loadMembers() {
+  const tbody = document.getElementById('members-table-body');
+  tbody.innerHTML = '<tr><td colspan="5" class="text-gray-400 py-4 text-center">Loading...</td></tr>';
+  try {
+    const all = await apiFetch('/api/admin/users');
+    if (all && all.error && all.error.toLowerCase().includes('admin access')) {
+      tbody.innerHTML = `<tr><td colspan="5" class='text-red-500 py-4 text-center'>Access denied: You do not have admin privileges.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = '';
+    const approved = (all || []).filter(u => u.status === 'approved');
+    if (!approved.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-gray-400 py-4 text-center">No approved members.</td></tr>';
+      return;
+    }
+    approved.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b';
+      tr.innerHTML = `
+        <td class="py-3 px-4">${u.username}</td>
+        <td class="py-3 px-4">${u.email}</td>
+        <td class="py-3 px-4">
+          <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">${u.status}</span>
+        </td>
+        <td class="py-3 px-4">
+          <span>${u.role}</span>
+          <select class="ml-2 px-2 py-1 rounded text-xs border" data-role-change="${u.id}">
+            <option value="member" ${u.role==='member'?'selected':''}>Member</option>
+            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+            <option value="super_admin" ${u.role==='super_admin'?'selected':''}>Super Admin</option>
+          </select>
+          <button class="ml-2 px-2 py-1 bg-primary text-white rounded-md text-xs font-medium hover:bg-primary-dark" data-promote="${u.id}">Change Role</button>
+        </td>
+        <td class="py-3 px-4 text-right space-x-2">
+          <button class="px-3 py-1 bg-green-500 text-white rounded-md text-xs font-medium hover:bg-green-600" data-reject="${u.id}">Remove</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll('button[data-reject]').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const id = btn.getAttribute('data-reject');
+        await apiFetch(`/api/admin/users/${id}`, {method:'DELETE'});
+        loadMembers();
+      });
+    });
+    tbody.querySelectorAll('button[data-promote]').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const id = btn.getAttribute('data-promote');
+        const roleSelect = tbody.querySelector(`select[data-role-change="${id}"]`);
+        const selectedRole = roleSelect ? roleSelect.value : 'member';
+        await apiFetch(`/api/admin/users/${id}/approve`, {method:'PUT', body:JSON.stringify({role:selectedRole, status:'approved'})});
+        loadMembers();
+      });
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-red-500 py-4 text-center">Failed to load members.</td></tr>`;
+  }
+}
+
+// --- Member Search ---
+const memberSearchForm = document.getElementById('member-search-form');
+const memberSearchInput = document.getElementById('member-search-input');
+const memberSearchResult = document.getElementById('member-search-result');
+memberSearchForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  memberSearchResult.innerHTML = '';
+  const query = memberSearchInput.value.trim().toLowerCase();
+  if (!query) return;
+  memberSearchResult.innerHTML = '<div class="text-gray-500">Searching...</div>';
+  try {
+    const res = await apiFetch('/api/admin/users');
+    const users = res || [];
+    const found = users.find(u => (u.status === 'approved') && (u.username.toLowerCase() === query || u.email.toLowerCase() === query));
+    if (!found) {
+      memberSearchResult.innerHTML = '<div class="text-red-500">No user found.</div>';
+      return;
+    }
+    memberSearchResult.innerHTML = `
+      <div class="bg-gray-50 rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex-1">
+          <div class="font-bold text-lg text-primary mb-1">${found.username}</div>
+          <div class="text-sm text-gray-600 mb-1">${found.email}</div>
+          <div class="text-xs text-gray-500 mb-2">Status: <span class="font-semibold">${found.status}</span></div>
+          <div class="text-xs text-gray-500 mb-2">Role: <span class="font-semibold">${found.role}</span></div>
+        </div>
+        <div class="flex gap-3">
+          <button id="remove-btn" class="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600">Remove</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('remove-btn').addEventListener('click', async function() {
+      await apiFetch(`/api/admin/users/${found.id}`, {method:'DELETE'});
+      memberSearchResult.innerHTML += '<div class="text-red-500 mt-2">User removed!</div>';
+      loadMembers();
+    });
+  } catch (err) {
+    memberSearchResult.innerHTML = `<div class="text-red-500">Network error: ${err.message}</div>`;
+  }
+});
+
+// --- Admin Logs ---
+async function loadAdminLogs() {
+  const container = document.getElementById('admin-logs');
+  container.innerHTML = '<div class="text-gray-400">Loading...</div>';
+  try {
+    const logs = await apiFetch('/api/admin/logs');
+    if (logs && logs.error) {
+      container.innerHTML = `<div class='text-red-500'>${logs.error}</div>`;
+      return;
+    }
+    if (!logs.length) {
+      container.innerHTML = '<div class="text-gray-400">No admin actions found.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    logs.forEach(log => {
+      container.innerHTML += `<div><span class='font-bold'>${log.action}</span> by Admin #${log.admin_id} on Target #${log.target_id || '-'} <span class='text-gray-500'>${new Date(log.created_at).toLocaleString()}</span></div>`;
+    });
+  } catch (err) {
+    container.innerHTML = `<div class='text-red-500'>Failed to load admin logs.</div>`;
+  }
+}
+
+function communityText(value) {
+  return String(value || '').replace(/[&<>'"]/g, function (character) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character];
+  });
+}
+
+function communityCard(record, type) {
+  const details = type === 'volunteer'
+    ? `<p class="text-sm text-gray-600"><strong>Interests:</strong> ${communityText(Array.isArray(record.interests) ? record.interests.join(', ') : record.interests)}</p><p class="text-sm text-gray-600"><strong>Availability:</strong> ${communityText(record.availability || 'Not provided')}</p><p class="mt-2 text-sm text-gray-700">${communityText(record.motivation)}</p>`
+    : `<p class="text-sm text-gray-700"><strong>${communityText(record.subject)}</strong></p><p class="mt-2 whitespace-pre-wrap text-sm text-gray-600">${communityText(record.message)}</p>`;
+  const endpoint = type === 'volunteer' ? 'volunteer-interests' : 'team-messages';
+  return `<article class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm" data-community-card="${type}" data-id="${record.id}">
+    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><h4 class="font-bold text-primary">${communityText(record.name)}</h4><p class="text-xs text-gray-500"><a class="text-primary hover:underline" href="mailto:${communityText(record.email)}">${communityText(record.email)}</a>${record.phone ? ' · ' + communityText(record.phone) : ''}</p><p class="mt-1 text-xs text-gray-400">${new Date(record.created_at).toLocaleString()}</p></div>
+    <select class="rounded-lg border border-gray-200 px-2 py-1 text-xs" data-community-status><option value="new" ${record.status === 'new' ? 'selected' : ''}>New</option><option value="reviewing" ${record.status === 'reviewing' ? 'selected' : ''}>Reviewing</option><option value="contacted" ${record.status === 'contacted' ? 'selected' : ''}>Contacted</option><option value="closed" ${record.status === 'closed' ? 'selected' : ''}>Closed</option></select></div>
+    <div class="mt-3">${details}</div><textarea data-community-notes class="mt-3 w-full rounded-lg border border-gray-200 p-2 text-sm" rows="2" placeholder="Private admin follow-up notes...">${communityText(record.admin_notes)}</textarea><div class="mt-2 flex items-center justify-between"><span data-community-result class="text-xs text-gray-500"></span><button type="button" data-community-save class="rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white">Save update</button></div>
+  </article>`;
+}
+
+async function loadCommunityInbox(type) {
+  const container = document.getElementById(type === 'volunteer' ? 'volunteer-inbox' : 'message-inbox');
+  if (!container) return;
+  const endpoint = type === 'volunteer' ? '/api/admin/volunteer-interests' : '/api/admin/team-messages';
+  try {
+    const records = await apiFetch(endpoint);
+    if (!Array.isArray(records) || !records.length) { container.innerHTML = '<div class="text-gray-400">No submissions yet.</div>'; return; }
+    container.innerHTML = records.map(record => communityCard(record, type)).join('');
+    container.querySelectorAll('[data-community-save]').forEach(button => {
+      button.addEventListener('click', async function () {
+        const card = button.closest('[data-community-card]');
+        const result = card.querySelector('[data-community-result]');
+        result.textContent = 'Saving...';
+        const response = await apiFetch(`${endpoint}/${card.dataset.id}`, { method: 'PUT', body: JSON.stringify({ status: card.querySelector('[data-community-status]').value, admin_notes: card.querySelector('[data-community-notes]').value }) });
+        result.textContent = response && !response.error ? 'Saved' : (response.error || 'Could not save');
+      });
+    });
+  } catch (error) { container.innerHTML = '<div class="text-red-500">Failed to load submissions.</div>'; }
+}
+
+// Initial load
+window.addEventListener('DOMContentLoaded', () => {
+  loadPendingMembers();
+  loadMembers();
+  loadPrograms();
+  loadGallery();
+  loadAdminLogs();
+  loadCommunityInbox('volunteer');
+  loadCommunityInbox('message');
+});
+});
+</script>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard — Dream</title>
+    <script>
+      tailwindConfig = { theme: { extend: { colors: { primary: '#5a67d8', 'primary-dark': '#434190' } } } }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="antialiased text-gray-900 min-h-screen">
+    <script>
+      const API = window.DREAM_API || 'http://localhost:3000';
+      async function validateAdminSession() {
+        try {
+          const res = await fetch(API + '/api/session', { credentials: 'include' });
+          const data = await res.json();
+          const role = data && data.user && data.user.role;
+          if (!res.ok || !role || (role !== 'admin' && role !== 'super_admin')) {
+            window.location.href = 'login.html';
+            return;
+          }
+          localStorage.setItem('dream_user', JSON.stringify({ ...(JSON.parse(localStorage.getItem('dream_user') || '{}')), ...data.user }));
+        } catch (err) {
+          window.location.href = 'login.html';
+        }
+      }
+      validateAdminSession();
+    </script>
+    <!-- NAV -->
+    <header class="fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
+      <nav class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="index.html" class="flex items-center mr-8">
+              <img src="assets/DIT LOGO1.png" alt="Dream logo" class="h-8 w-auto mr-3 object-contain" />
+              <span class="text-lg font-semibold hidden sm:inline">Dream</span>
+            </a>
+            <ul class="hidden md:flex space-x-6 items-center text-gray-700">
+              <li><a href="index.html" class="hover:text-primary">Home</a></li>
+              <li><a href="about.html" class="hover:text-primary">About Us</a></li>
+              <li><a href="programs.html" class="hover:text-primary">Programs</a></li>
+              <li><a href="gallery.html" class="hover:text-primary">Gallery</a></li>
+              <li><a href="donation.html" class="hover:text-primary">Donation</a></li>
+            </ul>
+          </div>
+
+          <div class="flex items-center">
+            <!-- Desktop admin controls -->
+            <div class="hidden md:flex items-center space-x-3">
+              <a href="admin.html" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">Admin Access</a>
+              <a href="profile.html" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-95">Profile</a>
+                <button class="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600" onclick="logout()">Logout</button>
+            </div>
+
+            <button id="nav-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden px-2 pb-4">
+          <ul class="space-y-1">
+            <li><a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Home</a></li>
+            <li><a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">About Us</a></li>
+            <li><a href="programs.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Programs</a></li>
+            <li><a href="gallery.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Gallery</a></li>
+            <li><a href="donation.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Donation</a></li>
+          </ul>
+          <div class="mt-3 border-t pt-3 space-y-2">
+            <a href="admin.html" class="block px-3 py-2 rounded-md text-base font-medium bg-white border border-gray-300 text-center">Admin Access</a>
+            <a href="profile.html" class="block px-3 py-2 rounded-md text-base font-medium bg-primary text-white text-center">Profile</a>
+              <button class="w-full px-3 py-2 rounded-md text-base font-medium bg-red-500 text-white text-center hover:bg-red-600" onclick="logout()">Logout</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="main-admin-content flex flex-col items-center justify-center min-h-[80vh] pt-24 max-w-6xl mx-auto px-2 lg:px-4">
+      <!-- Admin Dashboard Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Panel: Admin Controls -->
+        <div class="lg:col-span-1 space-y-6">
+          <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-5 border border-gray-100 ring-1 ring-primary/10">
+            <h2 class="text-2xl font-extrabold text-primary mb-4 flex items-center gap-2">
+              <svg class="w-7 h-7 text-primary drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
+              Admin Controls
+            </h2>
+            <!-- Approve Top-Level Members -->
+            <div class="mb-6">
+              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-green-400 rounded-full"></span> Approve Top-Level Members</h3>
+              <div id="pending-members" class="space-y-3">
+                <!-- Pending members dynamically loaded here -->
+              </div>
+            </div>
+            <!-- Manage Programs Panel -->
+            <div class="mb-6">
+              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span> Programs</h3>
+              <div class="mb-4 flex justify-between items-center">
+                <span class="text-sm text-gray-600">Manage all programs below. You can add, edit, or delete programs.</span>
+                <button class="px-4 py-2 bg-green-500 text-white text-sm rounded-xl shadow-lg hover:bg-green-600 transition" onclick="document.getElementById('add-program-modal').style.display='block'">Add Program</button>
+              </div>
+              <div id="program-list" class="space-y-2">
+                <!-- Programs dynamically loaded here -->
+              </div>
+            </div>
+            <!-- Admin Logs Panel -->
+            <div class="mb-6">
+              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-purple-400 rounded-full"></span> Recent Admin Actions</h3>
+              <div id="admin-logs" class="space-y-2 text-xs text-gray-700">
+                <!-- Admin logs dynamically loaded here -->
+              </div>
+            </div>
+            <!-- Manage Gallery Panel -->
+            <div class="mb-2">
+              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-pink-400 rounded-full"></span> Gallery</h3>
+              <div class="mb-4 flex justify-between items-center">
+                <span class="text-sm text-gray-600">Manage all gallery images below. You can add, edit, or delete images.</span>
+                <button class="px-4 py-2 bg-green-500 text-white text-sm rounded-xl shadow-lg hover:bg-green-600 transition" onclick="document.getElementById('add-image-modal').style.display='block'">Add Image</button>
+              </div>
+              <div id="gallery-list" class="space-y-2">
+                <!-- Gallery images dynamically loaded here -->
+              </div>
+            </div>
+            <div class="mb-6">
+              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-orange-400 rounded-full"></span> Volunteer Interests</h3>
+              <div id="volunteer-inbox" class="space-y-3"><div class="text-gray-400">Loading...</div></div>
+            </div>
+            <div class="mb-2">
+              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-green-400 rounded-full"></span> Team Messages</h3>
+              <div id="message-inbox" class="space-y-3"><div class="text-gray-400">Loading...</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Manage Members -->
+        <div class="lg:col-span-2">
+          <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-gray-100 ring-1 ring-primary/10">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+              <h2 class="text-2xl font-extrabold text-primary drop-shadow">Manage Members</h2>
+              <button class="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-green-600 transition">Add New Member</button>
+            </div>
+            <!-- Search Bar -->
+            <form id="member-search-form" class="flex gap-2 mb-6">
+              <input type="text" id="member-search-input" placeholder="Search members by name or email..." class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm shadow-lg focus:ring-2 focus:ring-primary" />
+              <button type="submit" class="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-green-600 transition">Search</button>
+            </form>
+            <div id="member-search-result" class="mb-6"></div>
+            <!-- Members Table -->
+            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
+              <table class="min-w-full" id="members-table">
+                <thead class="bg-gradient-to-r from-primary/10 to-green-400/10">
+                  <tr class="border-b">
+                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Name</th>
+                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Email</th>
+                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Status</th>
+                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Role</th>
+                    <th class="text-right py-3 px-3 text-base font-bold text-primary-dark">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="members-table-body">
+                  <!-- Members will be loaded here dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modals -->
+      <!-- Add Program Modal -->
+      <div id="add-program-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-primary/10 ring-1 ring-primary/10">
+          <h3 class="text-xl font-bold mb-4 text-primary">Add New Program</h3>
+          <form class="space-y-4" enctype="multipart/form-data">
+            <div id="add-program-error" class="text-red-500 text-sm"></div>
+            <div id="add-program-success" class="text-green-600 text-sm"></div>
+            <div>
+              <label for="add-program-title" class="block text-base font-semibold text-primary-dark mb-1">Program Name</label>
+              <input id="add-program-title" name="title" type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary" placeholder="Enter program name" />
+            </div>
+            <div>
+              <label for="add-program-image" class="block text-base font-semibold text-primary-dark mb-1">Image</label>
+              <input id="add-program-image" type="file" accept="image/*" name="image" class="block w-full text-sm" />
+            </div>
+            <div>
+              <label for="add-program-status" class="block text-base font-semibold text-primary-dark mb-1">Status</label>
+              <select id="add-program-status" name="status" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('add-program-modal').style.display='none'">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-primary text-white rounded-xl text-base font-bold shadow-lg hover:bg-primary-dark transition">Add Program</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- Edit Program Modal -->
+      <div id="edit-program-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-primary/10 ring-1 ring-primary/10">
+          <h3 class="text-xl font-bold mb-4 text-primary">Edit Program</h3>
+          <form id="addProgramForm" class="space-y-4" enctype="multipart/form-data">
+            <div id="edit-program-error" class="text-red-500 text-sm"></div>
+            <div id="edit-program-success" class="text-green-600 text-sm"></div>
+            <div>
+              <label for="edit-program-title" class="block text-base font-semibold text-primary-dark mb-1">Program Name</label>
+              <input id="edit-program-title" name="title" type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary" value="Youth Empowerment" />
+            </div>
+            <div>
+              <label for="edit-program-image" class="block text-base font-semibold text-primary-dark mb-1">Image</label>
+              <input id="edit-program-image" type="file" accept="image/*" name="image" class="block w-full text-sm" />
+              <img src="assets/IMG_0082.JPG" alt="Preview" class="mt-2 w-20 h-20 rounded-xl object-cover border shadow" />
+            </div>
+            <div>
+              <label for="edit-program-status" class="block text-base font-semibold text-primary-dark mb-1">Status</label>
+              <select id="edit-program-status" name="status" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('edit-program-modal').style.display='none'">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-primary text-white rounded-xl text-base font-bold shadow-lg hover:bg-primary-dark transition">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- Add Image Modal -->
+      <div id="add-image-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-pink-400/10 ring-1 ring-pink-400/10">
+          <h3 class="text-xl font-bold mb-4 text-pink-500">Add New Gallery Image</h3>
+          <form class="space-y-4" enctype="multipart/form-data">
+            <div id="add-image-error" class="text-red-500 text-sm"></div>
+            <div id="add-image-success" class="text-green-600 text-sm"></div>
+            <div>
+              <label for="add-image-image" class="block text-base font-semibold text-pink-500 mb-1">Image</label>
+              <input id="add-image-image" type="file" accept="image/*" name="image" class="block w-full text-sm" />
+            </div>
+            <div>
+              <label for="add-image-caption" class="block text-base font-semibold text-pink-500 mb-1">Caption</label>
+              <input id="add-image-caption" name="caption" type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-pink-400" placeholder="Enter caption" />
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('add-image-modal').style.display='none'">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-xl text-base font-bold shadow-lg hover:bg-green-600 transition">Add Image</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- Edit Image Modal -->
+      <div id="edit-image-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-pink-400/10 ring-1 ring-pink-400/10">
+          <h3 class="text-xl font-bold mb-4 text-pink-500">Edit Gallery Image</h3>
+          <form class="space-y-4" enctype="multipart/form-data">
+            <div id="edit-image-error" class="text-red-500 text-sm"></div>
+            <div id="edit-image-success" class="text-green-600 text-sm"></div>
+            <div>
+              <label class="block text-base font-semibold text-pink-500 mb-1">Image</label>
+              <input type="file" accept="image/*" name="image" class="block w-full text-sm" />
+              <img src="assets/IMG_0083.JPG" alt="Preview" class="mt-2 w-20 h-20 rounded-xl object-cover border shadow" />
+            </div>
+            <div>
+              <label class="block text-base font-semibold text-pink-500 mb-1">Caption</label>
+              <input type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-pink-400" value="Community Event" />
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('edit-image-modal').style.display='none'">Cancel</button>
+              <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-xl text-base font-bold shadow-lg hover:bg-green-600 transition">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>

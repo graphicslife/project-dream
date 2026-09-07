@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About Us — Dream</title>
+
+    <script>
+      tailwindConfig = { theme: { extend: { colors: { primary: '#5a67d8', 'primary-dark': '#434190' } } } }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="src/engagement.js?v=20260902"></script>
+  </head>
+  <body class="antialiased text-gray-800 bg-gray-50">
+    <!-- NAV (same as index) -->
+    <header class="fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
+      <nav class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="index.html" class="flex items-center mr-8">
+              <img src="assets/DIT LOGO1.png" alt="Dream logo" class="h-8 w-auto mr-3 object-contain" />
+              <span class="text-lg font-semibold hidden sm:inline">Dream</span>
+            </a>
+            <ul class="hidden md:flex space-x-6 items-center text-gray-700">
+              <li><a href="index.html" class="hover:text-primary">Home</a></li>
+              <li><a href="about.html" class="hover:text-primary">About Us</a></li>
+              <li><a href="programs.html" class="hover:text-primary">Programs</a></li>
+              <li><a href="gallery.html" class="hover:text-primary">Gallery</a></li>
+              <li><a href="donation.html" class="hover:text-primary">Donation</a></li>
+            </ul>
+          </div>
+
+          <div class="flex items-center">
+            <div class="hidden md:flex items-center space-x-3">
+              <a href="#auth" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">Login</a>
+              <a href="#auth" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-95">Register</a>
+            </div>
+            <button id="nav-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="mobile-menu" class="md:hidden hidden px-2 pb-4">
+          <ul class="space-y-1">
+            <li><a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Home</a></li>
+            <li><a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">About Us</a></li>
+            <li><a href="programs.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Programs</a></li>
+            <li><a href="gallery.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Gallery</a></li>
+            <li><a href="donation.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Donation</a></li>
+          </ul>
+          <div class="mt-3 border-t pt-3 space-y-2">
+            <a href="#auth" class="block px-3 py-2 rounded-md text-base font-medium bg-white border border-gray-300 text-center">Login</a>
+            <a href="#auth" class="block px-3 py-2 rounded-md text-base font-medium bg-primary text-white text-center">Register</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="pt-24 max-w-6xl mx-auto px-6 lg:px-8">
+      <section class="relative overflow-hidden rounded-2xl bg-gray-900 px-6 py-16 text-white shadow-xl md:px-12">
+        <div class="relative z-10 max-w-3xl">
+          <p class="mb-4 text-sm font-bold uppercase tracking-widest text-orange-300">About Dream Initiative</p>
+          <h1 id="about-title" class="text-4xl font-extrabold leading-tight md:text-5xl">Small acts of care can change a child’s whole future.</h1>
+          <p class="mt-6 text-lg leading-8 text-gray-200">We bring people together around practical, compassionate support for orphaned and vulnerable children and the families who care for them.</p>
+          <a href="donation.html" class="mt-8 inline-flex rounded-full bg-orange-500 px-6 py-3 font-bold text-white shadow-lg transition hover:bg-orange-600">Stand with a child</a>
+        </div>
+        <div class="absolute inset-y-0 right-0 hidden w-2/5 bg-cover bg-center opacity-40 md:block" style="background-image: url('assets/_52B9087.jpg');"></div>
+      </section>
+
+      <section class="grid gap-6 py-12 md:grid-cols-2">
+        <article class="rounded-xl border-l-4 border-orange-500 bg-white p-8 shadow-sm">
+          <p class="text-sm font-bold uppercase tracking-widest text-orange-600">Why we exist</p>
+          <h2 class="mt-2 text-2xl font-bold">Our mission</h2>
+          <p id="mission-text" class="mt-4 leading-7 text-gray-600">To empower orphaned and vulnerable children through education, health care, life skills, and the essential support they need to grow with confidence and dignity.</p>
+        </article>
+        <article class="rounded-xl border-l-4 border-green-500 bg-white p-8 shadow-sm">
+          <p class="text-sm font-bold uppercase tracking-widest text-green-700">The future we believe in</p>
+          <h2 class="mt-2 text-2xl font-bold">Our vision</h2>
+          <p id="vision-text" class="mt-4 leading-7 text-gray-600">A just and compassionate society where every child has the opportunity to live a healthy, empowered, and dignified life.</p>
+        </article>
+      </section>
+
+      <section class="py-6">
+        <div class="mb-8 max-w-2xl">
+          <p class="text-sm font-bold uppercase tracking-widest text-orange-600">How we show up</p>
+          <h2 class="mt-2 text-3xl font-extrabold">Care that feels personal</h2>
+          <p class="mt-3 leading-7 text-gray-600">From sharing iftar during the holy month of Ramadan to helping children learn, our work starts with listening and grows through consistent community action.</p>
+        </div>
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <article class="rounded-xl bg-orange-50 p-6"><div class="text-3xl">01</div><h3 class="mt-4 font-bold">Compassion</h3><p class="mt-2 text-sm leading-6 text-gray-600">We meet people with warmth, respect, and practical help.</p></article>
+          <article class="rounded-xl bg-green-50 p-6"><div class="text-3xl">02</div><h3 class="mt-4 font-bold">Patience</h3><p class="mt-2 text-sm leading-6 text-gray-600">Lasting change takes commitment beyond one moment.</p></article>
+          <article class="rounded-xl bg-yellow-50 p-6"><div class="text-3xl">03</div><h3 class="mt-4 font-bold">Gratitude</h3><p class="mt-2 text-sm leading-6 text-gray-600">Every volunteer, partner, and donor helps hope travel further.</p></article>
+          <article class="rounded-xl bg-blue-50 p-6"><div class="text-3xl">04</div><h3 class="mt-4 font-bold">Dignity</h3><p class="mt-2 text-sm leading-6 text-gray-600">We create support that honours every child and family.</p></article>
+        </div>
+      </section>
+
+      <section class="py-10">
+        <h3 class="text-2xl font-bold text-center">Meet Our Team</h3>
+        <div id="team-list" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <p class="text-center text-gray-500 col-span-full">Loading team members...</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER (same as index) -->
+    <footer class="mt-12 border-t bg-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between">
+        <div class="flex space-x-8 text-sm text-gray-600">
+          <a href="#quick" class="hover:text-primary">Quick Links</a>
+          <a href="#legal" class="hover:text-primary">Legal</a>
+          <a href="#contact" class="hover:text-primary">Contact Us</a>
+        </div>
+
+        <div class="mt-4 text-xs text-gray-500 md:mt-0">© 2026 Dream Initiative · Powered by CreativeDavy</div>
+        <div class="flex items-center mt-4 md:mt-0 space-x-3">
+          <a href="https://www.facebook.com/share/1SY9Y1PeE8/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:opacity-80" aria-label="Facebook">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.5 9.9v-7h-2.2v-2.9h2.2V9.1c0-2.2 1.3-3.4 3.2-3.4.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2v1.4h2.3l-.4 2.9h-1.9v7A10 10 0 0022 12z"/></svg>
+          </a>
+          <a href="#" class="text-black hover:opacity-80" aria-label="Twitter">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0016.5 3c-2.6 0-4.7 2.34-4.1 4.86A12.94 12.94 0 013 4s-4 9 5 13a13 13 0 01-8 2c9 5.5 20 0 20-11.5v-.5A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+          <a href="#" class="text-black hover:opacity-80" aria-label="LinkedIn">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.98 3.5A2.5 2.5 0 102.5 6a2.5 2.5 0 002.48-2.5zM3 8h4v12H3zM9 8h3.8v1.7h.1c.5-.9 1.8-1.8 3.6-1.8 3.9 0 4.6 2.6 4.6 6V20h-4v-5.5c0-1.3 0-3-1.8-3-1.8 0-2.1 1.4-2.1 2.9V20H9z"/></svg>
+          </a>
+          <a href="https://www.instagram.com/dreamtanzania?stkn=ZW5mNTljY3hzcTV3" target="_blank" rel="noopener noreferrer" class="text-black hover:opacity-80" aria-label="Instagram">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".5" fill="currentColor"/></svg>
+          </a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="src/api.js?v=20260902"></script>
+    <script src="src/app.js"></script>
+    <script>
+      async function loadAboutPage() {
+        const container = document.getElementById('team-list');
+        const titleEl = document.getElementById('about-title');
+        const missionEl = document.getElementById('mission-text');
+        const visionEl = document.getElementById('vision-text');
+
+        try {
+          const data = await dreamFetch('/api/about');
+          if (titleEl && data.title) titleEl.textContent = data.title;
+          if (missionEl && data.mission) missionEl.textContent = data.mission;
+          if (visionEl && data.vision) visionEl.textContent = data.vision;
+
+          const members = Array.isArray(data.team) ? data.team : [];
+          container.innerHTML = '';
+          if (!members.length) {
+            container.innerHTML = '<p class="text-center text-gray-500 col-span-full">Team information will be available soon.</p>';
+            return;
+          }
+
+          members.forEach(member => {
+            const card = document.createElement('article');
+            card.className = 'bg-white rounded-lg p-6 text-center shadow-sm';
+            const image = member.image_url || 'assets/DIT LOGO1.png';
+            card.innerHTML = '<img src="' + (image.startsWith('http') ? image : window.DREAM_API + image) + '" alt="' + (member.name || 'Team member') + '" class="w-32 h-32 rounded-full mx-auto object-cover" />' +
+              '<h4 class="mt-4 font-bold">' + (member.name || '') + '</h4>' +
+              '<p class="text-gray-500">' + (member.role || '') + '</p>';
+            container.appendChild(card);
+          });
+        } catch (error) {
+          container.innerHTML = '<p class="text-center text-red-500 col-span-full">Team members could not be loaded.</p>';
+        }
+      }
+      window.addEventListener('DOMContentLoaded', loadAboutPage);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gallery — Dream</title>
+  <!-- Tailwind CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="src/engagement.js?v=20260902"></script>
+  <script src="src/api.js?v=20260902"></script>
+  <script>
+    tailwindConfig = { theme: { extend: { colors: { primary: '#5a67d8', 'primary-dark': '#434190', success: '#22c55e', 'success-dark': '#16a34a' } } } }
+  </script>
+</head>
+<body class="antialiased text-gray-800 min-h-screen bg-gray-50">
+  <header class="fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
+    <nav class="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center mr-8">
+        <img src="assets/DIT LOGO1.png" alt="logo" class="h-8 w-auto mr-3 object-contain" />
+      </a>
+      <ul class="hidden md:flex space-x-6 items-center text-gray-700">
+        <li><a href="index.html" class="hover:text-primary">Home</a></li>
+        <li><a href="about.html" class="hover:text-primary">About Us</a></li>
+        <li><a href="programs.html" class="hover:text-primary">Programs</a></li>
+        <li><a href="gallery.html" class="hover:text-primary">Gallery</a></li>
+        <li><a href="donation.html" class="hover:text-primary">Donation</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main class="pt-24 max-w-5xl mx-auto px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-primary mb-8 text-center">Our Memories & Gallery</h2>
+    <div id="gallery-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"></div>
+    <div class="mt-10 text-center">
+      <a href="index.html" class="text-primary font-bold hover:underline">Back to Home</a>
+    </div>
+  </main>
+  <script>
+    const localGallery = [
+      { image_url: 'assets/IMG_0068.JPG', caption: 'Learning together' },
+      { image_url: 'assets/IMG_0076.JPG', caption: 'Community outreach' },
+      { image_url: 'assets/IMG_0077.JPG', caption: 'Health and wellbeing' },
+      { image_url: 'assets/IMG_0082.JPG', caption: 'Growing with confidence' },
+      { image_url: 'assets/IMG_0083.JPG', caption: 'A day of connection' },
+      { image_url: 'assets/_52B9087.jpg', caption: 'Ramadan Iftar' },
+      { image_url: 'assets/_52B9099.jpg', caption: 'Sharing joy' },
+      { image_url: 'assets/_52B9179.jpg', caption: 'Dream Initiative in action' }
+    ];
+    function galleryImageUrl(imageUrl) {
+      if (!imageUrl) return 'assets/IMG_0083.JPG';
+      if (imageUrl.startsWith('http') || imageUrl.startsWith('assets/')) return imageUrl;
+      return window.DREAM_API + imageUrl;
+    }
+    async function fetchGallery() {
+      const container = document.getElementById('gallery-list');
+      let images = [];
+      try {
+        const res = await fetch(window.DREAM_API + '/api/gallery', { credentials: 'include' });
+        if (res.ok) images = await res.json();
+      } catch (error) {
+        images = [];
+      }
+      images = Array.isArray(images) && images.length ? images : localGallery;
+      container.innerHTML = '';
+      images.forEach(img => {
+        const div = document.createElement('div');
+        div.className = 'bg-white rounded-lg shadow p-4 flex flex-col items-center';
+        div.innerHTML = `
+          <img src="${galleryImageUrl(img.image_url)}" alt="${img.caption || 'Dream Initiative community work'}" class="w-full h-48 object-cover rounded mb-2" />
+          <span class="font-medium">${img.caption || ''}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+    window.addEventListener('DOMContentLoaded', fetchGallery);
+  </script>
+  <script src="src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Volunteer with Dream Initiative</title>
+  <script src="src/api.js?v=20260902"></script>
+  <style>
+    :root { --orange: #d3542b; --ink: #24302b; --muted: #65716b; --line: #e4e9e5; }
+    * { box-sizing: border-box; } body { margin: 0; color: var(--ink); background: #f7f8f6; font-family: Arial, sans-serif; }
+    header { background: #fff; border-bottom: 1px solid var(--line); } nav { max-width: 1120px; margin: auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; } nav a { color: var(--ink); font-weight: 700; text-decoration: none; } nav a:last-child { color: var(--orange); }
+    main { max-width: 1120px; margin: auto; padding: 64px 24px; } .eyebrow { color: var(--orange); font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; } h1 { max-width: 700px; margin: 12px 0; font-size: clamp(34px, 6vw, 64px); line-height: 1.02; } .intro { max-width: 650px; color: var(--muted); font-size: 18px; line-height: 1.7; }
+    .layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: 48px; margin-top: 48px; align-items: start; } .note { padding: 28px; border-radius: 18px; background: #fff1eb; } .note h2 { margin-top: 0; } .note p { color: var(--muted); line-height: 1.6; }
+    form { padding: 30px; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 12px 32px rgba(36,48,43,.07); } .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; } label { display: block; margin-bottom: 7px; color: var(--ink); font-size: 13px; font-weight: 700; } input, select, textarea { width: 100%; padding: 12px 13px; border: 1px solid #ccd5cf; border-radius: 9px; color: var(--ink); font: inherit; } textarea { min-height: 110px; resize: vertical; } .field { margin-bottom: 18px; } .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } .choice { display: flex; gap: 8px; align-items: center; padding: 11px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); font-size: 13px; } .choice input { width: auto; } button { width: 100%; padding: 14px; border: 0; border-radius: 9px; background: var(--orange); color: #fff; font-weight: 800; cursor: pointer; } button:hover { background: #a63e1a; } #form-message { min-height: 22px; margin-top: 14px; font-size: 14px; } .success { color: #28734d; } .error { color: #b42318; }
+    @media (max-width: 760px) { .layout, .grid { grid-template-columns: 1fr; } main { padding-top: 40px; } }
+  </style>
+</head>
+<body>
+  <header><nav><a href="index.html">Dream Initiative</a><a href="index.html">Back to home</a></nav></header>
+  <main>
+    <p class="eyebrow">Join the work</p>
+    <h1>Bring your time, skills, and heart to the community.</h1>
+    <p class="intro">Tell us how you would like to help. Our team will review your interests and contact you when there is a meaningful opportunity to contribute.</p>
+    <div class="layout">
+      <aside class="note"><h2>Where people help</h2><p>Volunteers support Ramadan Iftar, education, health outreach, family support, events, communications, and fundraising.</p><p>Your details are kept for Dream Initiative's team review and follow-up.</p></aside>
+      <form id="volunteer-form">
+        <div class="grid">
+          <div class="field"><label for="name">Full name</label><input id="name" name="name" required /></div>
+          <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" required /></div>
+          <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" /></div>
+          <div class="field"><label for="location">Location</label><input id="location" name="location" placeholder="City / district" /></div>
+        </div>
+        <div class="field"><label>What interests you? Select all that apply.</label><div class="choices">
+          <label class="choice"><input type="checkbox" name="interest" value="Ramadan Iftar" /> Ramadan Iftar</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Education" /> Education</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Health outreach" /> Health outreach</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Events" /> Events</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Communications" /> Communications</label>
+          <label class="choice"><input type="checkbox" name="interest" value="Fundraising" /> Fundraising</label>
+        </div></div>
+        <div class="field"><label for="availability">Availability</label><select id="availability"><option value="">Choose one</option><option>Occasional weekends</option><option>Weekly</option><option>During Ramadan</option><option>Project-based</option></select></div>
+        <div class="field"><label for="experience">Relevant experience or skills</label><textarea id="experience" placeholder="Tell us what you can bring..."></textarea></div>
+        <div class="field"><label for="motivation">Why would you like to volunteer?</label><textarea id="motivation" required></textarea></div>
+        <button type="submit">Send my volunteer interest</button><div id="form-message" aria-live="polite"></div>
+      </form>
+    </div>
+  </main>
+  <script>
+    document.getElementById('volunteer-form').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const message = document.getElementById('form-message');
+      const interests = Array.from(form.querySelectorAll('input[name="interest"]:checked')).map(input => input.value);
+      const payload = { name: form.name.value.trim(), email: form.email.value.trim(), phone: form.phone.value.trim(), location: form.location.value.trim(), interests, availability: document.getElementById('availability').value, experience: document.getElementById('experience').value.trim(), motivation: document.getElementById('motivation').value.trim() };
+      message.className = ''; message.textContent = 'Sending...';
+      try { const response = await fetch(window.DREAM_API + '/api/volunteer-interests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) }); const contentType = response.headers.get('content-type') || ''; const data = contentType.includes('application/json') ? await response.json() : { error: 'The server returned an unexpected page. Please make sure the Dream backend is running on port 3000.' }; if (!response.ok) throw new Error(data.error || 'Submission failed.'); message.className = 'success'; message.textContent = 'Thank you. Your interest is with the Dream Initiative team.'; form.reset(); } catch (error) { message.className = 'error'; message.textContent = error.message; }
+    });
+  </script>
+</body>
+</html>

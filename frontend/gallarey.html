@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Gallery — Dream</title>
+		<!-- Tailwind CSS CDN -->
+		<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+		<script src="src/engagement.js?v=20260902"></script>
+		<script src="src/api.js?v=20260902"></script>
+		<script>
+			tailwindConfig = { theme: { extend: { colors: { primary: '#5a67d8', 'primary-dark': '#434190', success: '#22c55e', 'success-dark': '#16a34a' } } } }
+		</script>
+	</head>
+	<body class="antialiased text-gray-800 min-h-screen bg-gray-50">
+		<header class="fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
+			<nav class="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
+				<a href="index.html" class="flex items-center mr-8">
+					<img src="assets/DIT LOGO1.png" alt="logo" class="h-8 w-auto mr-3 object-contain" />
+				</a>
+				<ul class="hidden md:flex space-x-6 items-center text-gray-700">
+					<li><a href="index.html" class="hover:text-primary">Home</a></li>
+					<li><a href="about.html" class="hover:text-primary">About Us</a></li>
+					<li><a href="programs.html" class="hover:text-primary">Programs</a></li>
+					<li><a href="donation.html" class="hover:text-primary">Donation</a></li>
+				</ul>
+			</nav>
+		</header>
+		<main class="pt-24 max-w-5xl mx-auto px-6 lg:px-8">
+			<h2 class="text-3xl font-bold text-primary mb-8 text-center">Our Memories & Gallery</h2>
+			<div id="gallery-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8"></div>
+			<div class="mt-10 text-center">
+				<a href="index.html" class="text-primary font-bold hover:underline">Back to Home</a>
+			</div>
+		</main>
+		<script>
+		async function fetchGallery() {
+			const res = await fetch(window.DREAM_API + '/api/gallery', { credentials: 'include' });
+			const images = await res.json();
+			const container = document.getElementById('gallery-list');
+			container.innerHTML = '';
+			if (!images.length) {
+				container.innerHTML = '<div class="text-gray-400 col-span-3">No images found.</div>';
+				return;
+			}
+			(images || []).forEach(img => {
+				const div = document.createElement('div');
+				div.className = 'bg-white rounded-xl shadow p-4 flex flex-col items-center mb-6';
+				let url = img.image_url;
+				if (url && !url.startsWith('http')) url = window.DREAM_API + url;
+				div.innerHTML = `
+					<img src="${url || 'assets/sample.jpg'}" alt="Gallery" class="w-32 h-32 rounded object-cover mb-2 border" />
+					<span class="font-medium">${img.caption || ''}</span>
+				`;
+				container.appendChild(div);
+			});
+		}
+		window.addEventListener('DOMContentLoaded', fetchGallery);
+		</script>
+		<script src="src/app.js"></script>
+	</body>
+</html>

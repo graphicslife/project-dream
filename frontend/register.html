@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Register — Dream</title>
+    <script src="src/engagement.js?v=20260902" defer></script>
+    <script src="src/api.js?v=20260902" defer></script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #f4f7ff 0%, #eef4ff 35%, #f8fafc 100%);
+      }
+
+      .register-shell {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 20px;
+      }
+
+      .register-card {
+        width: min(100%, 640px);
+        background: rgba(255,255,255,0.96);
+        border: 1px solid rgba(148,163,184,0.18);
+        border-radius: 22px;
+        box-shadow: 0 24px 65px rgba(15, 23, 42, 0.12);
+        padding: 30px 34px 26px;
+      }
+
+      .register-header {
+        text-align: center;
+        margin-bottom: 18px;
+      }
+
+      .register-mark {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #5a67d8 0%, #434190 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.1rem;
+        box-shadow: 0 12px 24px rgba(90, 103, 216, 0.2);
+      }
+
+      .register-header h1 {
+        margin: 0;
+        color: #1f2937;
+        font-size: clamp(1.75rem, 3vw, 2.15rem);
+        letter-spacing: -0.03em;
+      }
+
+      .register-header p {
+        margin: 7px 0 0;
+        color: #5b6478;
+        font-size: 0.9rem;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+      }
+
+      #register-form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 16px;
+        row-gap: 13px;
+      }
+
+      #register-form .field:first-child,
+      #register-form .field:nth-child(2),
+      #register-form button,
+      #register-form #register-message {
+        grid-column: 1 / -1;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      label {
+        display: block;
+        color: #374151;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      input, select {
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #dfe7f3;
+        background: #f8fbff;
+        border-radius: 14px;
+        padding: 11px 13px;
+        font-size: 0.93rem;
+        color: #111827;
+        transition: all 0.2s ease;
+      }
+
+      input:focus, select:focus {
+        outline: none;
+        border-color: rgba(90,103,216,0.8);
+        box-shadow: 0 0 0 4px rgba(90,103,216,0.10);
+        background: #fff;
+      }
+
+      .submit-btn {
+        border: none;
+        border-radius: 14px;
+        padding: 12px 18px;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.98rem;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(34,197,94,0.20);
+      }
+
+      #register-message {
+        min-height: 22px;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .text-danger { color: #dc2626; }
+      .text-success { color: #15803d; }
+
+      .switch-box {
+        text-align: center;
+        margin-top: 14px;
+        color: #5b6478;
+        font-size: 0.88rem;
+      }
+
+      .switch-box a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      @media (max-width: 620px) {
+        .register-shell {
+          align-items: flex-start;
+          padding: 18px 14px;
+        }
+
+        .register-card {
+          padding: 24px 18px 20px;
+          border-radius: 18px;
+        }
+
+        #register-form {
+          display: flex;
+          gap: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="register-shell">
+      <div class="register-card">
+        <div class="register-header">
+          <div class="register-mark">D</div>
+          <h1>Create account</h1>
+          <p>Join Dream and become part of the mission</p>
+        </div>
+
+        <form id="register-form">
+          <div class="field">
+            <label for="name">Full Name</label>
+            <input required type="text" id="name" placeholder="Jane Doe" />
+          </div>
+
+          <div class="field">
+            <label for="role">Role / Position</label>
+            <select id="role">
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+              <option value="coordinator">Program Coordinator</option>
+              <option value="mobilizer">Community Mobilizer</option>
+              <option value="partner">Development Partner</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input required type="email" id="email" placeholder="you@example.com" />
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input required type="password" id="password" placeholder="Create a password" />
+          </div>
+
+          <div class="field">
+            <label for="confirm-password">Confirm Password</label>
+            <input required type="password" id="confirm-password" placeholder="Confirm password" />
+          </div>
+
+          <button type="submit" class="submit-btn">Create account</button>
+          <div id="register-message"></div>
+        </form>
+
+        <div class="switch-box">
+          Already have an account? <a href="login.html">Sign in</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('register-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const role = document.getElementById('role').value;
+        const message = document.getElementById('register-message');
+
+        message.textContent = '';
+        message.className = '';
+
+        if (!name || !email || !password || !confirmPassword || !role) {
+          message.textContent = 'All fields are required.';
+          message.classList.add('text-danger');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          message.textContent = 'Passwords do not match.';
+          message.classList.add('text-danger');
+          return;
+        }
+
+        try {
+          const res = await fetch(window.DREAM_API + '/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: name, email, password, role })
+          });
+
+          let data = {};
+          try {
+            data = await res.json();
+          } catch (jsonErr) {
+            message.textContent = `Unexpected server response: ${jsonErr.message}`;
+            message.classList.add('text-danger');
+            return;
+          }
+
+          if (res.ok) {
+            message.textContent = 'Registration successful!';
+            message.classList.add('text-success');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+          } else if (data && data.error) {
+            message.textContent = data.error + (data.details ? ` (${data.details})` : '');
+            message.classList.add('text-danger');
+          } else {
+            message.textContent = `Registration failed: ${res.status} ${res.statusText}`;
+            message.classList.add('text-danger');
+          }
+        } catch (err) {
+          message.textContent = `Network error: ${err.message}`;
+          message.classList.add('text-danger');
+        }
+      });
+    </script>
+    <script src="src/app.js"></script>
+  </body>
+</html>
