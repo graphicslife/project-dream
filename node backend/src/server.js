@@ -9,6 +9,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGIN || 'http://localhost:5500,http://127.0.0.1:5500')
 	.split(',').map(origin => origin.trim()).filter(Boolean);
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 
 const db = require('./config/db');
@@ -16,6 +17,7 @@ require('./models/volunteer_interest');
 require('./models/team_message');
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.set('trust proxy', 1);
 
 // Health check endpoint
 app.get('/healthz', (req, res) => {
@@ -36,10 +38,12 @@ app.use(cors({
 const fs = require('fs');
 const uploadsDir = path.join(__dirname, 'uploads');
 const profileImagesDir = path.join(__dirname, '../../frontend/assets/profile_images');
+const frontendDir = path.join(__dirname, '../../frontend');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(profileImagesDir)) fs.mkdirSync(profileImagesDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 app.use('/profile_images', express.static(profileImagesDir));
+app.use(express.static(frontendDir));
 
 // Session middleware
 app.use(session({
@@ -48,7 +52,8 @@ app.use(session({
 	saveUninitialized: false,
 	cookie: {
 		maxAge: 3 * 60 * 1000, // 3 minutes
-		sameSite: 'lax',
+    secure: process.env.SESSION_COOKIE_SECURE === 'true' || IS_PRODUCTION,
+    sameSite: process.env.SESSION_COOKIE_SAMESITE || (IS_PRODUCTION ? 'none' : 'lax'),
 		httpOnly: true
 	}
 }));

@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const db = require('../config/db');
+let databaseRetryAfter = 0;
 
 // Helper: hash user agent for fingerprinting
 function hashUserAgent(ua) {
@@ -17,6 +18,11 @@ async function sessionAnalytics(req, res, next) {
     user_agent: req.headers['user-agent'] || '',
     user_agent_hash: hashUserAgent(req.headers['user-agent'] || '')
   };
+
+  if (Date.now() < databaseRetryAfter) {
+    req.analytics = fallbackAnalytics;
+    return next();
+  }
 
   try {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -71,6 +77,9 @@ async function sessionAnalytics(req, res, next) {
     // Analytics must never prevent authentication or application routes from running.
     if (!['ER_NO_SUCH_TABLE', 'ER_BAD_FIELD_ERROR'].includes(err.code)) {
       console.error('Session analytics middleware error:', err.message);
+    }
+    if (['ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND'].includes(err.code)) {
+      databaseRetryAfter = Date.now() + 30000;
     }
     req.analytics = fallbackAnalytics;
     next();
