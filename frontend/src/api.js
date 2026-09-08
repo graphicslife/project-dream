@@ -1,7 +1,8 @@
 (function () {
-  const api = !window.location.hostname || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  const configuredApi = window.DREAM_API_URL;
+  const api = configuredApi || (!window.location.hostname || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000'
-    : window.location.origin;
+    : window.location.origin);
 
   window.DREAM_API = api;
   window.dreamFetch = async function (path, options) {

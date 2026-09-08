@@ -1,0 +1,145 @@
+/* Shared device-friendly defaults for the static frontend. */
+:root {
+  --content-gutter: clamp(1rem, 3vw, 2rem);
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+svg {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+button,
+a[class*="px-"],
+input[type="submit"] {
+  min-height: 44px;
+}
+
+main {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  header nav > div > div:first-child > ul {
+    display: none !important;
+  }
+
+  header nav > div {
+    min-height: 64px;
+  }
+
+  body > header ~ main,
+  body > header + main {
+    padding-top: 72px !important;
+  }
+
+  .site-header ~ main > section:first-child > div:first-child {
+    height: auto !important;
+    min-height: 540px;
+  }
+
+  .site-header ~ main > section:first-child > div:first-child > div:nth-child(2) {
+    justify-content: flex-end;
+    padding: 5rem var(--content-gutter) 2.5rem !important;
+  }
+
+  .site-header ~ main > section:first-child h1 {
+    max-width: 19rem;
+    margin-bottom: 1rem;
+    font-size: clamp(2rem, 10vw, 2.75rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  .site-header ~ main > section:first-child p {
+    max-width: 22rem;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .site-header ~ main > section:not(:first-child),
+  body > header + main > section:not(:first-child) {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .site-header ~ main > section:not(:first-child) > div,
+  body > header + main > section:not(:first-child) > div {
+    padding: 1.25rem !important;
+  }
+
+  main {
+    padding-left: var(--content-gutter) !important;
+    padding-right: var(--content-gutter) !important;
+  }
+
+  header nav {
+    padding-left: var(--content-gutter) !important;
+    padding-right: var(--content-gutter) !important;
+  }
+
+  h1 {
+    overflow-wrap: anywhere;
+  }
+
+  [class*="grid-cols-"] {
+    min-width: 0;
+  }
+
+  table {
+    font-size: 0.875rem;
+  }
+
+  [class*="fixed inset-0"] > [class*="max-w-"],
+  [class*="fixed.inset-0"] > [class*="max-w-"] {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-header nav img,
+  header nav img {
+    max-width: 92px;
+  }
+
+  footer .flex {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
