@@ -4,6 +4,8 @@ const multer = require('multer');
 const path = require('path');
 const { requireAdmin } = require('../middleware/auth');
 
+const imageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
 // Multer storage config
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -14,7 +16,16 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + '-' + file.originalname.replace(/\s+/g, '_'));
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: function (req, file, cb) {
+    if (!imageMimeTypes.has(file.mimetype)) {
+      return cb(new Error('Only JPEG, PNG, and WEBP image files are allowed.'));
+    }
+    cb(null, true);
+  }
+});
 
 module.exports = (app) => {
   // Get all gallery images

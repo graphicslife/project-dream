@@ -1,0 +1,25 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+node backend/src/.env
+
+# Dependencies
+node_modules/
+node backend/src/node_modules/
+
+# Runtime uploads and logs
+node backend/src/uploads/
+frontend/assets/profile_images/*
+!frontend/assets/profile_images/.gitkeep
+*.log
+
+# Build and test output
+dist/
+build/
+coverage/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/

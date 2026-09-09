@@ -99,38 +99,35 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Add Program
-  // Find the add program form by its modal and class
-  const addProgramModal = document.getElementById('add-program-modal');
-    // Use explicit ID for the add program form
-    const addProgramForm = document.getElementById('addProgramForm');
-    if (addProgramForm) {
-      addProgramForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const formData = new FormData(addProgramForm);
-        const fileInput = addProgramForm.querySelector('input[type="file"][name="image"]');
-        if (!fileInput || !fileInput.files[0]) {
-          alert('Please select an image file.');
-          return;
-        }
-        formData.append('image', fileInput.files[0]);
-        try {
-          const res = await fetch(`${API}/api/programs`, {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-          });
-          if (!res.ok) throw new Error('Failed to add program');
-          addProgramForm.reset();
-          document.getElementById('add-program-modal').classList.add('hidden');
-          loadPrograms();
-        } catch (err) {
-          alert('Error: ' + err.message);
-        }
-      });
-    } else {
-      console.warn('addProgramForm not found in DOM');
+const addProgramModal = document.getElementById('add-program-modal');
+const addProgramForm = document.getElementById('addProgramForm');
+if (addProgramForm) {
+  addProgramForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(addProgramForm);
+    const fileInput = addProgramForm.querySelector('input[type="file"][name="image"]');
+    if (!fileInput || !fileInput.files[0]) {
+      alert('Please select an image file.');
+      return;
     }
-
+    formData.append('image', fileInput.files[0]);
+    try {
+      const res = await fetch(`${API}/api/programs`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error('Failed to add program');
+      addProgramForm.reset();
+      if (addProgramModal) addProgramModal.style.display = 'none';
+      loadPrograms();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    }
+  });
+} else {
+  console.warn('addProgramForm not found in DOM');
+}
   // Edit Program Modal logic
   function showEditProgramModal(id) {
     apiFetch(`/api/programs/${id}`).then(p => {
@@ -233,7 +230,8 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 // Add Image
-const addImageForm = document.querySelector('#add-image-modal form');
+const addImageForm = document.getElementById('addImageForm');
+if (addImageForm) {
   addImageForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     const formData = new FormData(addImageForm);
@@ -251,12 +249,16 @@ const addImageForm = document.querySelector('#add-image-modal form');
       });
       if (!res.ok) throw new Error('Failed to add image');
       addImageForm.reset();
-      document.getElementById('add-image-modal').classList.add('hidden');
+      const addImageModal = document.getElementById('add-image-modal');
+      if (addImageModal) addImageModal.style.display = 'none';
       loadGallery();
     } catch (err) {
       alert('Error: ' + err.message);
     }
   });
+} else {
+  console.warn('addImageForm not found in DOM');
+}
 
 // Edit Image Modal logic
 function showEditImageModal(id) {
@@ -431,42 +433,55 @@ async function loadMembers() {
 const memberSearchForm = document.getElementById('member-search-form');
 const memberSearchInput = document.getElementById('member-search-input');
 const memberSearchResult = document.getElementById('member-search-result');
-memberSearchForm.addEventListener('submit', async function(e) {
-  e.preventDefault();
-  memberSearchResult.innerHTML = '';
-  const query = memberSearchInput.value.trim().toLowerCase();
-  if (!query) return;
-  memberSearchResult.innerHTML = '<div class="text-gray-500">Searching...</div>';
-  try {
-    const res = await apiFetch('/api/admin/users');
-    const users = res || [];
-    const found = users.find(u => (u.status === 'approved') && (u.username.toLowerCase() === query || u.email.toLowerCase() === query));
-    if (!found) {
-      memberSearchResult.innerHTML = '<div class="text-red-500">No user found.</div>';
+if (memberSearchForm && memberSearchInput && memberSearchResult) {
+  memberSearchForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    memberSearchResult.innerHTML = '';
+    const query = memberSearchInput.value.trim().toLowerCase();
+    if (!query) {
+      memberSearchResult.innerHTML = '<div class="text-gray-500">Type a name or email to search.</div>';
       return;
     }
-    memberSearchResult.innerHTML = `
-      <div class="bg-gray-50 rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="flex-1">
-          <div class="font-bold text-lg text-primary mb-1">${found.username}</div>
-          <div class="text-sm text-gray-600 mb-1">${found.email}</div>
-          <div class="text-xs text-gray-500 mb-2">Status: <span class="font-semibold">${found.status}</span></div>
-          <div class="text-xs text-gray-500 mb-2">Role: <span class="font-semibold">${found.role}</span></div>
+    memberSearchResult.innerHTML = '<div class="text-gray-500">Searching...</div>';
+    try {
+      const res = await apiFetch('/api/admin/users');
+      if (!Array.isArray(res)) {
+        memberSearchResult.innerHTML = '<div class="text-red-500">Search is unavailable right now. Please sign in as an admin.</div>';
+        return;
+      }
+      const users = res || [];
+      const normalizedQuery = query.trim();
+      const found = users.filter(u => (u.status === 'approved') && (u.username && u.username.toLowerCase().includes(normalizedQuery) || u.email && u.email.toLowerCase().includes(normalizedQuery)));
+      if (!found.length) {
+        memberSearchResult.innerHTML = '<div class="text-red-500">No user found.</div>';
+        return;
+      }
+      memberSearchResult.innerHTML = found.map(foundUser => `
+        <div class="bg-gray-50 rounded-lg p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex-1">
+            <div class="font-bold text-lg text-primary mb-1">${foundUser.username}</div>
+            <div class="text-sm text-gray-600 mb-1">${foundUser.email}</div>
+            <div class="text-xs text-gray-500 mb-2">Status: <span class="font-semibold">${foundUser.status}</span></div>
+            <div class="text-xs text-gray-500 mb-2">Role: <span class="font-semibold">${foundUser.role}</span></div>
+          </div>
+          <div class="flex gap-3">
+            <button data-remove-user="${foundUser.id}" class="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600">Remove</button>
+          </div>
         </div>
-        <div class="flex gap-3">
-          <button id="remove-btn" class="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600">Remove</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('remove-btn').addEventListener('click', async function() {
-      await apiFetch(`/api/admin/users/${found.id}`, {method:'DELETE'});
-      memberSearchResult.innerHTML += '<div class="text-red-500 mt-2">User removed!</div>';
-      loadMembers();
-    });
-  } catch (err) {
-    memberSearchResult.innerHTML = `<div class="text-red-500">Network error: ${err.message}</div>`;
-  }
-});
+      `).join('');
+      document.querySelectorAll('[data-remove-user]').forEach(removeBtn => {
+        removeBtn.addEventListener('click', async function() {
+          const id = removeBtn.getAttribute('data-remove-user');
+          await apiFetch(`/api/admin/users/${id}`, {method:'DELETE'});
+          memberSearchResult.innerHTML += '<div class="text-red-500 mt-2">User removed!</div>';
+          loadMembers();
+        });
+      });
+    } catch (err) {
+      memberSearchResult.innerHTML = `<div class="text-red-500">Search failed: ${err.message}</div>`;
+    }
+  });
+}
 
 // --- Admin Logs ---
 async function loadAdminLogs() {
@@ -720,7 +735,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <div id="add-program-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
         <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-primary/10 ring-1 ring-primary/10">
           <h3 class="text-xl font-bold mb-4 text-primary">Add New Program</h3>
-          <form class="space-y-4" enctype="multipart/form-data">
+          <form id="addProgramForm" class="space-y-4" enctype="multipart/form-data">
             <div id="add-program-error" class="text-red-500 text-sm"></div>
             <div id="add-program-success" class="text-green-600 text-sm"></div>
             <div>
@@ -749,7 +764,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <div id="edit-program-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
         <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-primary/10 ring-1 ring-primary/10">
           <h3 class="text-xl font-bold mb-4 text-primary">Edit Program</h3>
-          <form id="addProgramForm" class="space-y-4" enctype="multipart/form-data">
+          <form id="editProgramForm" class="space-y-4" enctype="multipart/form-data">
             <div id="edit-program-error" class="text-red-500 text-sm"></div>
             <div id="edit-program-success" class="text-green-600 text-sm"></div>
             <div>
@@ -779,7 +794,7 @@ window.addEventListener('DOMContentLoaded', () => {
       <div id="add-image-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
         <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-pink-400/10 ring-1 ring-pink-400/10">
           <h3 class="text-xl font-bold mb-4 text-pink-500">Add New Gallery Image</h3>
-          <form class="space-y-4" enctype="multipart/form-data">
+          <form id="addImageForm" class="space-y-4" enctype="multipart/form-data">
             <div id="add-image-error" class="text-red-500 text-sm"></div>
             <div id="add-image-success" class="text-green-600 text-sm"></div>
             <div>
