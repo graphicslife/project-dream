@@ -1,4 +1,60 @@
 (function () {
+  function getStoredPreferences() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('dream_preferences') || '{}');
+      return {
+        language: stored.language || 'English',
+        contrast: stored.contrast || 'Light',
+        motion: stored.motion || 'Standard',
+        mode: stored.mode || 'day'
+      };
+    } catch (err) {
+      return { language: 'English', contrast: 'Light', motion: 'Standard', mode: 'day' };
+    }
+  }
+
+  function persistPreferences(settings) {
+    localStorage.setItem('dream_preferences', JSON.stringify(settings));
+  }
+
+  function applyPreferences(settings) {
+    const languageValue = document.getElementById('menu-language-value');
+    const contrastValue = document.getElementById('menu-contrast-value');
+    const motionValue = document.getElementById('menu-motion-value');
+    if (languageValue) languageValue.textContent = settings.language;
+    if (contrastValue) contrastValue.textContent = settings.contrast;
+    if (motionValue) motionValue.textContent = settings.motion;
+
+    const languageCode = settings.language === 'Swahili' ? 'sw' : 'en';
+    document.documentElement.lang = languageCode;
+    document.body.classList.toggle('dream-high-contrast', settings.contrast === 'High contrast');
+    document.body.classList.toggle('dream-reduced-motion', settings.motion === 'Reduced');
+    document.body.classList.toggle('dream-night-mode', settings.mode === 'night');
+    document.body.classList.toggle('dream-day-mode', settings.mode !== 'night');
+
+    const settingsFormLanguage = document.getElementById('language-select');
+    if (settingsFormLanguage) {
+      const languageMap = { 'English': 'en', 'Swahili': 'sw', 'French': 'fr', 'Spanish': 'es' };
+      settingsFormLanguage.value = languageMap[settings.language] || 'en';
+    }
+
+    const lightButton = document.getElementById('mode-light');
+    const darkButton = document.getElementById('mode-dark');
+    if (lightButton && darkButton) {
+      if (settings.mode === 'night') {
+        lightButton.classList.remove('bg-gray-800', 'text-white');
+        lightButton.classList.add('bg-gray-100', 'text-gray-700');
+        darkButton.classList.remove('bg-gray-100', 'text-gray-700');
+        darkButton.classList.add('bg-gray-800', 'text-white');
+      } else {
+        lightButton.classList.remove('bg-gray-100', 'text-gray-700');
+        lightButton.classList.add('bg-gray-800', 'text-white');
+        darkButton.classList.remove('bg-gray-800', 'text-white');
+        darkButton.classList.add('bg-gray-100', 'text-gray-700');
+      }
+    }
+  }
+
   function toggleMobileMenu() {
     const toggle = document.getElementById('nav-toggle');
     const menu = document.getElementById('mobile-menu');
@@ -49,10 +105,11 @@
     const motionValue = document.getElementById('menu-motion-value');
     if (!languageButton || !contrastButton || !motionButton || !languageValue || !contrastValue || !motionValue) return;
 
-    const settings = JSON.parse(localStorage.getItem('dream_preferences') || '{}');
-    let language = settings.language || 'English';
-    let contrast = settings.contrast || 'Light';
-    let motion = settings.motion || 'Standard';
+    const settings = getStoredPreferences();
+    let language = settings.language;
+    let contrast = settings.contrast;
+    let motion = settings.motion;
+    let mode = settings.mode || 'day';
 
     function renderPreferences() {
       languageValue.textContent = language;
@@ -61,7 +118,10 @@
       document.documentElement.lang = language === 'Swahili' ? 'sw' : 'en';
       document.body.classList.toggle('dream-high-contrast', contrast === 'High contrast');
       document.body.classList.toggle('dream-reduced-motion', motion === 'Reduced');
-      localStorage.setItem('dream_preferences', JSON.stringify({ language, contrast, motion }));
+      document.body.classList.toggle('dream-night-mode', mode === 'night');
+      document.body.classList.toggle('dream-day-mode', mode !== 'night');
+      persistPreferences({ language, contrast, motion, mode });
+      applyPreferences({ language, contrast, motion, mode });
     }
 
     languageButton.addEventListener('click', function () {
@@ -118,6 +178,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    const stored = getStoredPreferences();
+    applyPreferences(stored);
     toggleMobileMenu();
     toggleSiteMenu();
     bindMenuPreferences();
