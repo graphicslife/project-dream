@@ -33,13 +33,15 @@ module.exports = (app) => {
 
   app.get('/api/programs', (req, res) => programsController.getAllPrograms(req, res));
   app.get('/api/programs/:id', (req, res) => programsController.getProgramById(req, res));
-  // Add new program (admin only, with file upload)
-  // Add new program (admin only, with file upload)
+
   app.post('/api/programs', requireAdmin, upload.single('image'), async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ error: 'Image file required.' });
+      const title = String(req.body.title || '').trim();
+      const description = String(req.body.description || req.body.title || '').trim();
+      const status = String(req.body.status || 'active').trim();
+      if (!title) return res.status(400).json({ error: 'Program title is required.' });
       const image_url = '/uploads/' + req.file.filename;
-      const { title, description, status } = req.body;
       const created_by = req.session.user ? req.session.user.id : null;
       const program = await Program.create({ title, description, image_url, status, created_by });
       res.status(201).json(program);
@@ -47,7 +49,7 @@ module.exports = (app) => {
       res.status(500).json({ error: 'Failed to add program.' });
     }
   });
-  // Update program (admin only, supports new file upload)
+
   app.put('/api/programs/:id', requireAdmin, upload.single('image'), async (req, res) => {
     try {
       const program = await Program.findByPk(req.params.id);
@@ -56,12 +58,15 @@ module.exports = (app) => {
       if (req.file) {
         image_url = '/uploads/' + req.file.filename;
       }
-      const { title, description, status } = req.body;
+      const title = String(req.body.title || program.title || '').trim();
+      const description = String(req.body.description || req.body.title || program.description || '').trim();
+      const status = String(req.body.status || program.status || 'active').trim();
       await program.update({ title, description, status, image_url, last_updated: new Date() });
       res.json(program);
     } catch (err) {
       res.status(500).json({ error: 'Failed to update program.' });
     }
   });
+
   app.delete('/api/programs/:id', requireAdmin, (req, res) => programsController.deleteProgram(req, res));
 };

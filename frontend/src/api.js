@@ -6,6 +6,45 @@
 
   window.DREAM_API = api;
 
+  // Shared session normalization for static HTML pages.
+  // This keeps settings and upload-related buttons from throwing when
+  // localStorage has no current user object but the server session is valid.
+  window.getStoredDreamUser = function () {
+    try {
+      const raw = localStorage.getItem('dream_user');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && parsed.id ? parsed : null;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  window.ensureDreamSessionUser = async function () {
+    const stored = window.getStoredDreamUser();
+    if (stored && stored.id) return stored;
+
+    try {
+      const sessionResponse = await fetch(api + '/api/session', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (!sessionResponse.ok) {
+        localStorage.removeItem('dream_user');
+        return null;
+      }
+      const session = await sessionResponse.json();
+      if (!session || !session.user || !session.user.id) {
+        localStorage.removeItem('dream_user');
+        return null;
+      }
+      localStorage.setItem('dream_user', JSON.stringify(session.user));
+      return session.user;
+    } catch (err) {
+      return null;
+    }
+  };
+
   async function performLogout() {
     try {
       await fetch(api + '/api/logout', {

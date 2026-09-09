@@ -1,66 +1,11 @@
-
-<!DOCTYPE html>
-<style>
-  body {
-    min-height: 100vh;
-    background: url('assets/_52B9087.jpg') center center/cover no-repeat fixed;
-    position: relative;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(120deg, rgba(90,103,216,0.7) 0%, rgba(255,229,180,0.5) 50%, rgba(34,197,94,0.4) 100%);
-    z-index: 0;
-    pointer-events: none;
-  }
-  .main-admin-content {
-    position: relative;
-    z-index: 1;
-  }
-</style>
-<script src="src/api.js?v=20260902"></script>
-<script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Keep the admin dashboard page on the same backend-origin API object that
-  // the other static pages already load from src/api.js.
-  const adminApi = window.DREAM_API || 'http://localhost:3000';
-  // Admin dashboard page reads the authenticated user from the server session
-  // when browser storage is stale or empty. This avoids null.id crashes and
-  // keeps the UI actions working from a real session instead of placeholder state.
-  let user = null;
-  try {
-    const stored = JSON.parse(localStorage.getItem('dream_user') || 'null');
-    if (stored && stored.id) user = stored;
-  } catch (err) {
-    user = null;
-  }
-
-  async function hydrateAdminUser() {
-    if (user && user.id) return user;
-    try {
-      const response = await fetch(adminApi + '/api/session', { credentials: 'include' });
-      if (!response.ok) return null;
-      const session = await response.json();
-      if (session && session.user && session.user.id) {
-        user = session.user;
-        localStorage.setItem('dream_user', JSON.stringify(user));
-      }
-    } catch (err) {
-      console.warn('Admin session hydration warning:', err);
-    }
-    return user;
-  }
-
-  // Keep API fetches consistent across the admin dashboard by sending the
-  // existing express-session cookie and using JSON where the route expects it.
+  const API = window.DREAM_API;
+  const user = JSON.parse(localStorage.getItem('dream_user') || '{}');
   function apiFetch(url, opts = {}) {
     opts.headers = opts.headers || {};
-    if (!(opts.body instanceof FormData)) {
-      opts.headers['Content-Type'] = 'application/json';
-    }
-    opts.credentials = 'include';
-    return fetch(adminApi + url, opts).then(r => r.json());
+    opts.headers['Content-Type'] = 'application/json';
+    opts.credentials = 'include'; // Ensure cookies/session sent
+    return fetch(API + url, opts).then(r => r.json());
   }
 
   // --- Logout Functionality ---
@@ -144,7 +89,7 @@ if (addProgramForm) {
     }
     formData.append('image', fileInput.files[0]);
     try {
-      const res = await fetch(`${adminApi}/api/programs`, {
+      const res = await fetch(`${API}/api/programs`, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -190,7 +135,7 @@ if (addProgramForm) {
         formData.delete('image');
       }
       try {
-        const res = await fetch(`${adminApi}/api/programs/${id}`, {
+        const res = await fetch(`${API}/api/programs/${id}`, {
           method: 'PUT',
           body: formData,
           credentials: 'include'
@@ -274,7 +219,7 @@ if (addImageForm) {
     }
     formData.append('image', fileInput.files[0]);
     try {
-      const res = await fetch(`${adminApi}/api/gallery`, {
+      const res = await fetch(`${API}/api/gallery`, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -335,6 +280,7 @@ if (editImageForm) {
       alert('Error: ' + err.message);
     }
   });
+}
 }
 
 // --- Top-Level Pending Members ---
@@ -588,25 +534,13 @@ window.addEventListener('DOMContentLoaded', () => {
   loadCommunityInbox('volunteer');
   loadCommunityInbox('message');
 });
-</script>
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="assets/responsive.css" />
-    <title>Admin Dashboard — Dream</title>
-    <script>
-      tailwindConfig = { theme: { extend: { colors: { primary: '#5a67d8', 'primary-dark': '#434190' } } } }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="antialiased text-gray-900 min-h-screen">
-    <script>
+
+tailwindConfig = { theme: { extend: { colors: { primary: '#5a67d8', 'primary-dark': '#434190' } } } }
+
+const API = window.DREAM_API || 'http://localhost:3000';
       async function validateAdminSession() {
         try {
-          const baseApi = window.DREAM_API || 'http://localhost:3000';
-          const res = await fetch(baseApi + '/api/session', { credentials: 'include' });
+          const res = await fetch(API + '/api/session', { credentials: 'include' });
           const data = await res.json();
           const role = data && data.user && data.user.role;
           if (!res.ok || !role || (role !== 'admin' && role !== 'super_admin')) {
@@ -619,253 +553,3 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }
       validateAdminSession();
-    </script>
-    <!-- NAV -->
-    <header class="fixed inset-x-0 top-0 z-50 bg-white shadow-sm">
-      <nav class="max-w-7xl mx-auto px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <a href="index.html" class="flex items-center mr-8">
-              <img src="assets/DIT LOGO1.png" alt="Dream logo" class="h-8 w-auto mr-3 object-contain" />
-              <span class="text-lg font-semibold hidden sm:inline">Dream</span>
-            </a>
-            <ul class="hidden md:flex space-x-6 items-center text-gray-700">
-              <li><a href="index.html" class="hover:text-primary">Home</a></li>
-              <li><a href="about.html" class="hover:text-primary">About Us</a></li>
-              <li><a href="programs.html" class="hover:text-primary">Programs</a></li>
-              <li><a href="gallery.html" class="hover:text-primary">Gallery</a></li>
-              <li><a href="donation.html" class="hover:text-primary">Donation</a></li>
-            </ul>
-          </div>
-
-          <div class="flex items-center">
-            <!-- Desktop admin controls -->
-            <div class="hidden md:flex items-center space-x-3">
-              <a href="admin.html" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">Admin Access</a>
-              <a href="profile.html" class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:opacity-95">Profile</a>
-                <button class="px-4 py-2 bg-red-500 text-white rounded-md text-sm font-medium hover:bg-red-600" onclick="logout()">Logout</button>
-            </div>
-
-            <button id="nav-toggle" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:bg-gray-100 focus:outline-none">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden hidden px-2 pb-4">
-          <ul class="space-y-1">
-            <li><a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Home</a></li>
-            <li><a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">About Us</a></li>
-            <li><a href="programs.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Programs</a></li>
-            <li><a href="gallery.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Gallery</a></li>
-            <li><a href="donation.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">Donation</a></li>
-          </ul>
-          <div class="mt-3 border-t pt-3 space-y-2">
-            <a href="admin.html" class="block px-3 py-2 rounded-md text-base font-medium bg-white border border-gray-300 text-center">Admin Access</a>
-            <a href="profile.html" class="block px-3 py-2 rounded-md text-base font-medium bg-primary text-white text-center">Profile</a>
-              <button class="w-full px-3 py-2 rounded-md text-base font-medium bg-red-500 text-white text-center hover:bg-red-600" onclick="logout()">Logout</button>
-          </div>
-        </div>
-      </nav>
-    </header>
-
-    <main class="main-admin-content flex flex-col items-center justify-center min-h-[80vh] pt-24 max-w-6xl mx-auto px-2 lg:px-4">
-      <!-- Admin Dashboard Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Panel: Admin Controls -->
-        <div class="lg:col-span-1 space-y-6">
-          <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-5 border border-gray-100 ring-1 ring-primary/10">
-            <h2 class="text-2xl font-extrabold text-primary mb-4 flex items-center gap-2">
-              <svg class="w-7 h-7 text-primary drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3"/></svg>
-              Admin Controls
-            </h2>
-            <!-- Approve Top-Level Members -->
-            <div class="mb-6">
-              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-green-400 rounded-full"></span> Approve Top-Level Members</h3>
-              <div id="pending-members" class="space-y-3">
-                <!-- Pending members dynamically loaded here -->
-              </div>
-            </div>
-            <!-- Manage Programs Panel -->
-            <div class="mb-6">
-              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-blue-400 rounded-full"></span> Programs</h3>
-              <div class="mb-4 flex justify-between items-center">
-                <span class="text-sm text-gray-600">Manage all programs below. You can add, edit, or delete programs.</span>
-                <button class="px-4 py-2 bg-green-500 text-white text-sm rounded-xl shadow-lg hover:bg-green-600 transition" onclick="document.getElementById('add-program-modal').style.display='block'">Add Program</button>
-              </div>
-              <div id="program-list" class="space-y-2">
-                <!-- Programs dynamically loaded here -->
-              </div>
-            </div>
-            <!-- Admin Logs Panel -->
-            <div class="mb-6">
-              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-purple-400 rounded-full"></span> Recent Admin Actions</h3>
-              <div id="admin-logs" class="space-y-2 text-xs text-gray-700">
-                <!-- Admin logs dynamically loaded here -->
-              </div>
-            </div>
-            <!-- Manage Gallery Panel -->
-            <div class="mb-2">
-              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-pink-400 rounded-full"></span> Gallery</h3>
-              <div class="mb-4 flex justify-between items-center">
-                <span class="text-sm text-gray-600">Manage all gallery images below. You can add, edit, or delete images.</span>
-                <button class="px-4 py-2 bg-green-500 text-white text-sm rounded-xl shadow-lg hover:bg-green-600 transition" onclick="document.getElementById('add-image-modal').style.display='block'">Add Image</button>
-              </div>
-              <div id="gallery-list" class="space-y-2">
-                <!-- Gallery images dynamically loaded here -->
-              </div>
-            </div>
-            <div class="mb-6">
-              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-orange-400 rounded-full"></span> Volunteer Interests</h3>
-              <div id="volunteer-inbox" class="space-y-3"><div class="text-gray-400">Loading...</div></div>
-            </div>
-            <div class="mb-2">
-              <h3 class="font-semibold text-xl mb-3 text-primary-dark flex items-center gap-2"><span class="inline-block w-2 h-2 bg-green-400 rounded-full"></span> Team Messages</h3>
-              <div id="message-inbox" class="space-y-3"><div class="text-gray-400">Loading...</div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right Panel: Manage Members -->
-        <div class="lg:col-span-2">
-          <div class="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 border border-gray-100 ring-1 ring-primary/10">
-                  <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-              <h2 class="text-2xl font-extrabold text-primary drop-shadow">Manage Members</h2>
-              <a href="register.html" class="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-green-600 transition">Add New Member</a>
-            </div>
-            <!-- Search Bar -->
-            <form id="member-search-form" class="flex gap-2 mb-6">
-              <input type="text" id="member-search-input" placeholder="Search members by name or email..." class="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm shadow-lg focus:ring-2 focus:ring-primary" />
-              <button type="submit" class="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold shadow-lg hover:bg-green-600 transition">Search</button>
-            </form>
-            <div id="member-search-result" class="mb-6"></div>
-            <!-- Members Table -->
-            <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
-              <table class="min-w-full" id="members-table">
-                <thead class="bg-gradient-to-r from-primary/10 to-green-400/10">
-                  <tr class="border-b">
-                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Name</th>
-                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Email</th>
-                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Status</th>
-                    <th class="text-left py-3 px-3 text-base font-bold text-primary-dark">Role</th>
-                    <th class="text-right py-3 px-3 text-base font-bold text-primary-dark">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="members-table-body">
-                  <!-- Members will be loaded here dynamically -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modals -->
-      <!-- Add Program Modal -->
-      <div id="add-program-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-primary/10 ring-1 ring-primary/10">
-          <h3 class="text-xl font-bold mb-4 text-primary">Add New Program</h3>
-          <form id="addProgramForm" class="space-y-4" enctype="multipart/form-data">
-            <div id="add-program-error" class="text-red-500 text-sm"></div>
-            <div id="add-program-success" class="text-green-600 text-sm"></div>
-            <div>
-              <label for="add-program-title" class="block text-base font-semibold text-primary-dark mb-1">Program Name</label>
-              <input id="add-program-title" name="title" type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary" placeholder="Enter program name" />
-            </div>
-            <div>
-              <label for="add-program-image" class="block text-base font-semibold text-primary-dark mb-1">Image</label>
-              <input id="add-program-image" type="file" accept="image/*" name="image" class="block w-full text-sm" />
-            </div>
-            <div>
-              <label for="add-program-status" class="block text-base font-semibold text-primary-dark mb-1">Status</label>
-              <select id="add-program-status" name="status" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="flex justify-end space-x-2">
-              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('add-program-modal').style.display='none'">Cancel</button>
-              <button type="submit" class="px-4 py-2 bg-primary text-white rounded-xl text-base font-bold shadow-lg hover:bg-primary-dark transition">Add Program</button>
-            </div>
-          </form>
-        </div>
-      </div>
-      <!-- Edit Program Modal -->
-      <div id="edit-program-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-primary/10 ring-1 ring-primary/10">
-          <h3 class="text-xl font-bold mb-4 text-primary">Edit Program</h3>
-          <form id="editProgramForm" class="space-y-4" enctype="multipart/form-data">
-            <div id="edit-program-error" class="text-red-500 text-sm"></div>
-            <div id="edit-program-success" class="text-green-600 text-sm"></div>
-            <div>
-              <label for="edit-program-title" class="block text-base font-semibold text-primary-dark mb-1">Program Name</label>
-              <input id="edit-program-title" name="title" type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary" value="Youth Empowerment" />
-            </div>
-            <div>
-              <label for="edit-program-image" class="block text-base font-semibold text-primary-dark mb-1">Image</label>
-              <input id="edit-program-image" type="file" accept="image/*" name="image" class="block w-full text-sm" />
-              <img src="assets/IMG_0082.JPG" alt="Preview" class="mt-2 w-20 h-20 rounded-xl object-cover border shadow" />
-            </div>
-            <div>
-              <label for="edit-program-status" class="block text-base font-semibold text-primary-dark mb-1">Status</label>
-              <select id="edit-program-status" name="status" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-primary">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="flex justify-end space-x-2">
-              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('edit-program-modal').style.display='none'">Cancel</button>
-              <button type="submit" class="px-4 py-2 bg-primary text-white rounded-xl text-base font-bold shadow-lg hover:bg-primary-dark transition">Save Changes</button>
-            </div>
-          </form>
-        </div>
-      </div>
-      <!-- Add Image Modal -->
-      <div id="add-image-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-pink-400/10 ring-1 ring-pink-400/10">
-          <h3 class="text-xl font-bold mb-4 text-pink-500">Add New Gallery Image</h3>
-          <form id="addImageForm" class="space-y-4" enctype="multipart/form-data">
-            <div id="add-image-error" class="text-red-500 text-sm"></div>
-            <div id="add-image-success" class="text-green-600 text-sm"></div>
-            <div>
-              <label for="add-image-image" class="block text-base font-semibold text-pink-500 mb-1">Image</label>
-              <input id="add-image-image" type="file" accept="image/*" name="image" class="block w-full text-sm" />
-            </div>
-            <div>
-              <label for="add-image-caption" class="block text-base font-semibold text-pink-500 mb-1">Caption</label>
-              <input id="add-image-caption" name="caption" type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-pink-400" placeholder="Enter caption" />
-            </div>
-            <div class="flex justify-end space-x-2">
-              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('add-image-modal').style.display='none'">Cancel</button>
-              <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-xl text-base font-bold shadow-lg hover:bg-green-600 transition">Add Image</button>
-            </div>
-          </form>
-        </div>
-      </div>
-      <!-- Edit Image Modal -->
-      <div id="edit-image-modal" style="display:none;" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-        <div class="bg-white/95 backdrop-blur-lg rounded-2xl p-6 w-full max-w-md shadow-xl border border-pink-400/10 ring-1 ring-pink-400/10">
-          <h3 class="text-xl font-bold mb-4 text-pink-500">Edit Gallery Image</h3>
-          <form class="space-y-4" enctype="multipart/form-data">
-            <div id="edit-image-error" class="text-red-500 text-sm"></div>
-            <div id="edit-image-success" class="text-green-600 text-sm"></div>
-            <div>
-              <label class="block text-base font-semibold text-pink-500 mb-1">Image</label>
-              <input type="file" accept="image/*" name="image" class="block w-full text-sm" />
-              <img src="assets/IMG_0083.JPG" alt="Preview" class="mt-2 w-20 h-20 rounded-xl object-cover border shadow" />
-            </div>
-            <div>
-              <label class="block text-base font-semibold text-pink-500 mb-1">Caption</label>
-              <input type="text" class="mt-1 block w-full rounded-xl border-gray-200 shadow-sm p-2 focus:ring-2 focus:ring-pink-400" value="Community Event" />
-            </div>
-            <div class="flex justify-end space-x-2">
-              <button type="button" class="px-4 py-2 bg-gray-200 rounded-xl text-base font-medium" onclick="document.getElementById('edit-image-modal').style.display='none'">Cancel</button>
-              <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-xl text-base font-bold shadow-lg hover:bg-green-600 transition">Save Changes</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </main>

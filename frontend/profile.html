@@ -604,37 +604,6 @@
         </div>
       </section>
 
-      <section class="profile-metrics" aria-label="Profile metrics">
-        <div class="profile-metric-card">
-          <span class="profile-metric-icon">↳</span>
-          <div>
-            <span class="metric-label">Profile</span>
-            <span class="metric-value" id="profile-completion-value">--%</span>
-          </div>
-        </div>
-        <div class="profile-metric-card">
-          <span class="profile-metric-icon">$</span>
-          <div>
-            <span class="metric-label">Donations</span>
-            <span class="metric-value" id="donation-total-card">--</span>
-          </div>
-        </div>
-        <div class="profile-metric-card">
-          <span class="profile-metric-icon">!</span>
-          <div>
-            <span class="metric-label">Contributions</span>
-            <span class="metric-value" id="donation-count-card">--</span>
-          </div>
-        </div>
-        <div class="profile-metric-card">
-          <span class="profile-metric-icon">✓</span>
-          <div>
-            <span class="metric-label">Account</span>
-            <span class="metric-value" id="account-status-card">Active</span>
-          </div>
-        </div>
-      </section>
-
       <section class="profile-dashboard-frame">
         <aside class="profile-dashboard-sidebar">
           <div class="profile-member-identity">
@@ -695,67 +664,24 @@
                   <div class="tab-panel-subtitle">Welcome back</div>
                 </div>
               </div>
-
-              <div class="overview-layout">
-                <section class="overview-photo-card">
-                  <div id="profile-avatar-large" class="profile-avatar-large"></div>
-
-                  <div class="photo-meta">
-                    <div id="membership-status" class="profile-pill">Active account</div>
-                    <div class="mt-3">
-                      <div class="text-sm font-bold text-slate-700">Profile photo</div>
-                      <div class="text-xs text-slate-500 mt-1">Upload a current image</div>
-                    </div>
+              <div class="in-panel-card">
+                <div class="overview-summary-line">
+                  <span class="text-sm text-slate-500">Your community profile is ready.</span>
+                </div>
+                <div class="overview-details-grid mt-4">
+                  <div class="overview-stat-tile">
+                    <span class="label">Profile</span>
+                    <span class="value" id="profile-completion-value">--%</span>
                   </div>
-
-                  <form id="avatar-upload-form" class="space-y-2 w-full" enctype="multipart/form-data">
-                    <label class="block text-sm text-slate-600 mb-1 font-medium">Profile photo</label>
-                    <input type="file" accept="image/*" class="form-field block w-full text-sm rounded-xl px-3 py-2.5" />
-                    <div class="overview-actions">
-                      <button type="submit" class="btn-primary-cool">Upload image</button>
-                      <button id="avatar-save-btn" type="submit" class="btn-secondary-cool">Save profile image</button>
-                    </div>
-                    <div id="avatar-upload-message" class="mt-2 text-center text-sm"></div>
-                  </form>
-                </section>
-
-                <section class="overview-details-card">
-                  <div class="overview-details-grid">
-                    <div class="overview-stat-tile">
-                      <span class="label">Profile</span>
-                      <span class="value" id="profile-completion-value">--%</span>
-                    </div>
-                    <div class="overview-stat-tile">
-                      <span class="label">Donations</span>
-                      <span class="value" id="donation-total-card">--</span>
-                    </div>
-                    <div class="overview-stat-tile">
-                      <span class="label">Contributions</span>
-                      <span class="value" id="donation-count-card">--</span>
-                    </div>
+                  <div class="overview-stat-tile">
+                    <span class="label">Donations</span>
+                    <span class="value" id="donation-total-card">--</span>
                   </div>
-
-                  <div class="donation-summary-card">
-                    <div class="tab-panel-subtitle">Donation summary</div>
-                    <div class="stats-cool mb-2 mt-3">Total Donated: <span id="donation-total" class="font-bold text-primary">--</span></div>
-                    <div class="stats-cool mb-4">Contributions: <span id="donation-count" class="font-bold">--</span></div>
-                    <form class="space-y-2" id="donation-form">
-                      <label class="block text-sm text-slate-600 font-medium">Make a Donation</label>
-                      <input type="number" min="1" step="any" placeholder="Amount (USD)" class="form-field block w-full rounded-xl px-3 py-2.5" />
-                      <button type="submit" class="w-full px-4 py-2.5 btn-cool rounded-xl text-sm font-medium">Donate</button>
-                    </form>
+                  <div class="overview-stat-tile">
+                    <span class="label">Contributions</span>
+                    <span class="value" id="donation-count-card">--</span>
                   </div>
-
-                  <div class="overview-details-card">
-                    <div class="tab-panel-subtitle">Quick actions</div>
-                    <div class="quick-actions-grid">
-                      <button class="quick-action" data-panel-target="personal">Edit profile</button>
-                      <button class="quick-action" data-panel-target="security">Change password</button>
-                      <button class="quick-action" data-panel-target="donations">Donate</button>
-                      <button class="quick-action" data-panel-target="settings">Settings</button>
-                    </div>
-                  </div>
-                </section>
+                </div>
               </div>
             </section>
 
@@ -914,13 +840,48 @@
     <script src="src/app.js"></script>
     <script src="src/engagement.js?v=20260902"></script>
     <script>
-    // Profile image upload logic
+    // Profile image upload logic.
+    // Keep the profile page from throwing when the saved browser user cache is empty.
+    const storedUser = JSON.parse(localStorage.getItem('dream_user') || 'null');
+    let user = storedUser && storedUser.id ? storedUser : null;
+
+    async function hydrateUserFromSession() {
+      if (user && user.id) return user;
+      try {
+        const res = await fetch(`${window.DREAM_API}/api/session`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        if (!res.ok) {
+          localStorage.removeItem('dream_user');
+          window.location.replace('login.html');
+          return null;
+        }
+        const data = await res.json();
+        if (data && data.user && data.user.id) {
+          user = data.user;
+          localStorage.setItem('dream_user', JSON.stringify(user));
+          return user;
+        }
+      } catch (err) {
+        console.warn('Session hydration warning:', err);
+      }
+      return null;
+    }
+
+    // Shared guard for every panel action that depends on the authenticated user.
+    // This prevents page-level null.id errors when settings, uploads, and downloads are touched.
+    async function requireUserForAction() {
+      if (!user || !user.id) {
+        user = await hydrateUserFromSession();
+      }
+      return user;
+    }
+
     const avatarForm = document.getElementById('avatar-upload-form');
-    const avatarInput = avatarForm.querySelector('input[type="file"]');
+    const avatarInput = avatarForm ? avatarForm.querySelector('input[type="file"]') : null;
     const avatarMsg = document.getElementById('avatar-upload-message');
     const avatarImg = document.getElementById('profile-avatar');
-    const avatarLarge = document.getElementById('profile-avatar-large');
-    const user = JSON.parse(localStorage.getItem('dream_user') || 'null');
 
     function normalizeAvatarSource(src) {
       let imgSrc = src || '';
@@ -935,46 +896,57 @@
     function renderAvatar(src) {
       const imgSrc = normalizeAvatarSource(src);
       if (avatarImg) avatarImg.style.backgroundImage = `url('${imgSrc}')`;
-      if (avatarLarge) avatarLarge.style.backgroundImage = `url('${imgSrc}')`;
     }
 
     if (user && typeof user === 'object' && user.profile_picture) {
       renderAvatar(user.profile_picture);
     }
 
-    avatarForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!avatarInput.files[0]) {
-        avatarMsg.textContent = 'Please select an image.';
-        avatarMsg.className = 'text-red-500 mt-2 text-center text-sm';
-        return;
-      }
-      const file = avatarInput.files[0];
-      const formData = new FormData();
-      formData.append('profile_picture', file);
-      avatarMsg.textContent = 'Uploading...';
-      avatarMsg.className = 'text-gray-500 mt-2 text-center text-sm';
-      try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}/profile-picture`, {
-          method: 'PUT',
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok && data.profile_picture) {
-          user.profile_picture = data.profile_picture;
-          localStorage.setItem('dream_user', JSON.stringify(user));
-          renderAvatar(data.profile_picture);
-          avatarMsg.textContent = 'Profile image updated!';
-          avatarMsg.className = 'text-green-500 mt-2 text-center text-sm';
-        } else {
-          avatarMsg.textContent = data.error || 'Failed to update image.';
+    if (avatarForm && avatarInput) {
+      avatarForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const currentUser = await requireUserForAction();
+        if (!currentUser || !currentUser.id) {
+          if (avatarMsg) {
+            avatarMsg.textContent = 'Please sign in again.';
+            avatarMsg.className = 'text-red-500 mt-2 text-center text-sm';
+          }
+          return;
+        }
+        if (!avatarInput.files[0]) {
+          avatarMsg.textContent = 'Please select an image.';
+          avatarMsg.className = 'text-red-500 mt-2 text-center text-sm';
+          return;
+        }
+        const file = avatarInput.files[0];
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+        avatarMsg.textContent = 'Uploading...';
+        avatarMsg.className = 'text-gray-500 mt-2 text-center text-sm';
+        try {
+          const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}/profile-picture`, {
+            method: 'PUT',
+            body: formData,
+            credentials: 'include'
+          });
+          const data = await res.json();
+          if (res.ok && data.profile_picture) {
+            currentUser.profile_picture = data.profile_picture;
+            user = currentUser;
+            localStorage.setItem('dream_user', JSON.stringify(user));
+            renderAvatar(data.profile_picture);
+            avatarMsg.textContent = 'Profile image updated!';
+            avatarMsg.className = 'text-green-500 mt-2 text-center text-sm';
+          } else {
+            avatarMsg.textContent = data.error || 'Failed to update image.';
+            avatarMsg.className = 'text-red-500 mt-2 text-center text-sm';
+          }
+        } catch (err) {
+          avatarMsg.textContent = 'Network error: ' + err.message;
           avatarMsg.className = 'text-red-500 mt-2 text-center text-sm';
         }
-      } catch (err) {
-        avatarMsg.textContent = 'Network error: ' + err.message;
-        avatarMsg.className = 'text-red-500 mt-2 text-center text-sm';
-      }
-    });
+      });
+    }
 
     // --- Password Change Logic ---
     const passwordForm = document.getElementById('password-form');
@@ -985,6 +957,12 @@
     passwordForm.addEventListener('submit', async function(e) {
       if (!currentPassword || !newPassword || !confirmPassword) return;
       e.preventDefault();
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) {
+        passwordMsg.textContent = 'Please sign in again.';
+        passwordMsg.className = 'text-red-500 mt-2 text-center text-sm';
+        return;
+      }
       passwordMsg.textContent = '';
       if (newPassword.value !== confirmPassword.value) {
         passwordMsg.textContent = 'New passwords do not match.';
@@ -992,9 +970,10 @@
         return;
       }
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}/password`, {
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}/password`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ current_password: currentPassword.value, new_password: newPassword.value })
         });
         const data = await res.json();
@@ -1060,13 +1039,16 @@
 
     // Load settings from backend and shared frontend preference storage
     async function loadUserSettings() {
-      if (!user || !user.id) return;
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) {
+        return;
+      }
       const shared = getPreferences();
       if (shared.language || shared.contrast || shared.motion || shared.mode) {
         syncSettingsControlUI(shared);
       }
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}`);
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}`, { credentials: 'include' });
         const data = await res.json();
         if (res.ok && data.settings) {
           const settings = { ...shared, ...(data.settings || {}) };
@@ -1097,9 +1079,10 @@
     const accountStatusCard = document.getElementById('account-status-card');
 
     async function loadDonationStats() {
-      if (!user || !user.id) return;
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) return;
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}/donation-stats`);
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}/donation-stats`, { credentials: 'include' });
         const data = await res.json();
         if (res.ok) {
           const total = Number(data.total || 0);
@@ -1149,10 +1132,15 @@
     if (downloadBtn) {
       downloadBtn.addEventListener('click', async function(e) {
         e.preventDefault();
+        const currentUser = await requireUserForAction();
+        if (!currentUser || !currentUser.id) {
+          alert('Please sign in again to download your data.');
+          return;
+        }
         downloadBtn.disabled = true;
         downloadBtn.textContent = 'Preparing...';
         try {
-          const res = await fetch(`${window.DREAM_API}/api/users/${user.id}/download`);
+          const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}/download`, { credentials: 'include' });
           if (!res.ok) throw new Error('Failed to download');
           const blob = await res.blob();
           const url = window.URL.createObjectURL(blob);
@@ -1202,15 +1190,22 @@
     // Save language
     languageSelect.addEventListener('change', async function() {
       settingsMsg.textContent = '';
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) {
+        settingsMsg.textContent = 'Please sign in again.';
+        settingsMsg.className = 'text-red-500 mt-2 text-center text-sm';
+        return;
+      }
       const languageMap = { 'en': 'English', 'fr': 'French', 'es': 'Spanish', 'sw': 'Swahili' };
       const selectedLanguage = languageMap[languageSelect.value] || 'English';
       const sharedSettings = getPreferences();
       sharedSettings.language = selectedLanguage;
       savePreferences(sharedSettings);
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}/language`, {
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}/language`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ language: selectedLanguage })
         });
         const data = await res.json();
@@ -1257,10 +1252,17 @@
     });
     async function saveMode(mode) {
       settingsMsg.textContent = '';
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) {
+        settingsMsg.textContent = 'Please sign in again.';
+        settingsMsg.className = 'text-red-500 mt-2 text-center text-sm';
+        return;
+      }
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}`, {
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ settings: { mode } })
         });
         const data = await res.json();
@@ -1291,15 +1293,20 @@
 
     // Fetch user data and populate form
     async function loadUserProfile() {
-      if (!user || !user.id) return;
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) return;
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}`);
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}`, { credentials: 'include' });
         const data = await res.json();
         if (res.ok) {
           nameInput.value = data.username || '';
           emailInput.value = data.email || '';
           phoneInput.value = data.phone || '';
           addressInput.value = data.address || '';
+
+          const displayName = data.username || 'Dream Member';
+          const sidebarName = document.getElementById('member-name');
+          if (sidebarName) sidebarName.textContent = displayName;
         }
       } catch (err) {
         // ignore
@@ -1309,6 +1316,12 @@
 
     personalForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+      const currentUser = await requireUserForAction();
+      if (!currentUser || !currentUser.id) {
+        personalMsg.textContent = 'Please sign in again.';
+        personalMsg.className = 'text-red-500 mt-2 text-center text-sm';
+        return;
+      }
       personalMsg.textContent = '';
       const payload = {
         username: nameInput.value,
@@ -1317,16 +1330,16 @@
         address: addressInput.value
       };
       try {
-        const res = await fetch(`${window.DREAM_API}/api/users/${user.id}`, {
+        const res = await fetch(`${window.DREAM_API}/api/users/${currentUser.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (res.ok) {
           personalMsg.textContent = 'Profile updated!';
           personalMsg.className = 'text-green-500 mt-2 text-center text-sm';
-          // Optionally update localStorage
           user.username = payload.username;
           user.email = payload.email;
           user.phone = payload.phone;
